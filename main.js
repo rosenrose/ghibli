@@ -119,7 +119,7 @@ document.querySelector("#run").addEventListener("click", function() {
                     randMovie = userSelect[getRandomInt(0, userSelect.length)];
                 }
                 else {
-                    return;
+                    randMovie = getRandomInt(0, list.movies.length);
                 }
             }
 
