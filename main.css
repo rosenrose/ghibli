@@ -1,0 +1,82 @@
+.center {
+    text-align: center;
+}
+.inline {
+    display: inline;
+}
+.color-white {
+    color: #fff;
+}
+.shadow-white {
+    text-shadow: 1px 1px 0px #fff, -1px 1px 0px #fff, 1px -1px 0px #fff, -1px -1px 0px #fff,
+                2px 2px 5px #fff, -2px 2px 5px #fff, 2px -2px 5px #fff, -2px -2px 5px #fff;
+}
+.bold {
+    font-weight: 600;
+}
+
+body {
+    background-image: url('./ghibli.png');
+}
+div {
+    margin: 0px 0px 10px 0px;
+}
+button {
+    color: rgb(0,147,219);
+    font-size: 80px;
+}
+#select,#pick {
+    float: left;
+}
+#select {
+    width: 45%;
+}
+
+.item {
+    display: inline-block;
+    /* border:1px solid rgba(0,0,0,1); */
+    margin: 0 5px;
+    max-width: 32%;
+}
+.item > img {
+    width: 100%;
+}
+.item > p {
+    margin: 0px 0px 20px 0px;
+}
+#movieCheckbox {
+    display: none;
+}
+#result {
+    clear: left;
+}
+
+@media ( max-width: 768px ) {
+    body {
+        background-size: contain;
+    }
+    button {
+        font-size: 40px;
+    }
+    #select,#pick {
+        float: none;
+    }
+    #select {
+        width: 100%;
+    }
+    .item { 
+        max-width: 100%;
+    }
+    #columnSelect {
+        display: none;
+    }
+    label,td {
+        background-color: rgb(0,147,219);
+    }
+    table {
+        border-collapse: collapse;
+    }
+    /* #numSelect label:nth-child(n+4){
+        display: none;
+    } */
+}

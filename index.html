@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>지브리 랜덤짤</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <link rel='stylesheet' type='text/css' media='screen' href='./main.css' title="myCSS">
+</head>
+<body>
+    <h1 class="center color-white">지브리 랜덤짤 가챠</h1>
+    <div id="select">
+        <div id="movieSelect">
+            <p class="inline bold">작품: </p>
+            <label class="color-white"><input type="radio" name="movie" value="list" checked>목록</label>
+            <label class="color-white"><input type="radio" name="movie" value="checkbox">직접 선택</label><br>
+            <select id="movieList">
+                <option value="-1">모두</option>
+            </select>
+            <table id="movieCheckbox">
+                <tr><td></td><td></td><td></td><td></td></tr>
+                <tr><td></td><td></td><td></td><td></td></tr>
+                <tr><td></td><td></td><td></td><td></td></tr>
+                <tr><td></td><td></td><td></td><td></td></tr>
+                <tr><td></td><td></td><td></td><td></td></tr>
+                <tr><td></td><td></td><td></td></tr>
+            </table>
+        </div>
+        <div id="numSelect">
+            <p class="inline bold">개수: </p>
+            <label class="color-white"><input type="radio" name="count" value="6" checked>6개</label>
+            <label class="color-white"><input type="radio" name="count" value="12">12개</label>
+            <label class="color-white"><input type="radio" name="count" value="24">24개</label>
+            <label class="color-white"><input type="radio" name="count" value="36">36개</label>
+        </div>
+        <div id="columnSelect">
+            <p class="inline bold">PC 화면: </p>
+            <label class="color-white"><input type="radio" name="column" value="3" checked>3개씩 보기</label>
+            <label class="color-white"><input type="radio" name="column" value="2">2개씩 보기</label>
+        </div>
+    </div>
+    <div id="pick" class="center"><button type="button" id="run">뽑기!</button></div>
+    <div id="result"></div>
+    <script type="text/javascript" src="./main.js"></script>
+</body>
+</html>
