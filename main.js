@@ -3,8 +3,7 @@ async function init() {
     movie = -1;
     userSelect = [];
     count = 6;
-    cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli"
-    list = await getData(`${cloud}/list.json`);
+    list = await getData("./list.json");
 
     let movieList = document.querySelector("#movieList");
     let movieCheckbox = document.querySelectorAll("#movieCheckbox td");
@@ -128,7 +127,7 @@ document.querySelector("#run").addEventListener("click", function() {
             let cut = list.movies[randMovie].cut[randCut];
             
             let title = list.movies[randMovie].name;
-            items[i].querySelector("img").src = `${cloud}/${title}/${cut}.jpg`;
+            items[i].querySelector("img").src = `https://d2wwh0934dzo2k.cloudfront.net/ghibli/${title}/${cut}.jpg`;
             if ((movieSelect == "list" && movie == -1) || (movieSelect == "checkbox" && userSelect.length > 1)) {
                 items[i].querySelector("p").innerText = title.slice(3,-7);
             }
