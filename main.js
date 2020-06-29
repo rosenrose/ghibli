@@ -141,10 +141,8 @@ document.querySelector("#run").addEventListener("click", function() {
 });
 
 function getData(url) {
-    return fetch(url,{
-        mode: 'no-cors'
-    })
-    .then(response => response.json());
+    return fetch(url)
+        .then(response => response.json());
 }
 
 function getRandomInt(minInclude, maxExclude) {
