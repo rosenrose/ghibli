@@ -23,13 +23,13 @@ div {
 }
 button {
     color: rgb(0,147,219);
-    font-size: 80px;
+    font-size: 60px;
 }
 #select,#pick {
     float: left;
 }
 #select {
-    width: 45%;
+    width: 46.5%;
 }
 
 .item {
