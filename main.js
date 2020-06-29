@@ -3,7 +3,7 @@ async function init() {
     movie = -1;
     userSelect = [];
     count = 6;
-    cloud = "http://d2wwh0934dzo2k.cloudfront.net/ghibli"
+    cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli"
     list = await getData(`${cloud}/list.json`);
 
     let movieList = document.querySelector("#movieList");
@@ -97,7 +97,7 @@ document.querySelector("#run").addEventListener("click", function() {
     if (typeof mutex == "undefined") {
         mutex = true;
     }
-    if (mutex && userSelect.length > 0) {
+    if (mutex) {
         mutex = false;
         let items = result.querySelectorAll(".item");
         for (let i=count; i<items.length; i++) {
@@ -116,7 +116,12 @@ document.querySelector("#run").addEventListener("click", function() {
                 }
             }
             else if (movieSelect == "checkbox") {
-                randMovie = userSelect[getRandomInt(0, userSelect.length)];
+                if (userSelect.length > 0) {
+                    randMovie = userSelect[getRandomInt(0, userSelect.length)];
+                }
+                else {
+                    return;
+                }
             }
 
             let randCut = getRandomInt(0, list.movies[randMovie].cut.length);
