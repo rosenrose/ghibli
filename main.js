@@ -97,7 +97,7 @@ document.querySelector("#run").addEventListener("click", function() {
     if (typeof mutex == "undefined") {
         mutex = true;
     }
-    if (mutex) {
+    if (mutex && userSelect.length > 0) {
         mutex = false;
         let items = result.querySelectorAll(".item");
         for (let i=count; i<items.length; i++) {
@@ -123,7 +123,7 @@ document.querySelector("#run").addEventListener("click", function() {
             let cut = list.movies[randMovie].cut[randCut];
             
             let title = list.movies[randMovie].name;
-            items[i].querySelector("img").src = `${ghibli}/${title}/${cut}.jpg`;
+            items[i].querySelector("img").src = `${cloud}/${title}/${cut}.jpg`;
             if ((movieSelect == "list" && movie == -1) || (movieSelect == "checkbox" && userSelect.length > 1)) {
                 items[i].querySelector("p").innerText = title.slice(3,-7);
             }
