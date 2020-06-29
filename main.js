@@ -105,7 +105,7 @@ document.querySelector("#run").addEventListener("click", function() {
         }
 
         for (let i=0; i<count; i++) {
-            let ranMovie;
+            let randMovie;
             if (movieSelect == "list") {
                 if (movie == -1) {
                     randMovie = getRandomInt(0, list.movies.length);
@@ -127,6 +127,7 @@ document.querySelector("#run").addEventListener("click", function() {
             let cut = list.movies[randMovie].cut[randCut];
             
             let title = list.movies[randMovie].name;
+            items[i].querySelector("img").addEventListener("load", function(){});
             items[i].querySelector("img").src = `https://d2wwh0934dzo2k.cloudfront.net/ghibli/${title}/${cut}.jpg`;
             if ((movieSelect == "list" && movie == -1) || (movieSelect == "checkbox" && userSelect.length > 1)) {
                 items[i].querySelector("p").innerText = title.slice(3,-7);
