@@ -124,7 +124,7 @@ document.querySelector("#run").addEventListener("click", function() {
             }
 
             let randCut = getRandomInt(0, list.movies[randMovie].cut.length);
-            let cut = list.movies[randMovie].cut[randCut];
+            let cut = list.movies[randMovie].cut[randCut].toString().padStart(5,"0");
             
             let title = list.movies[randMovie].name;
             items[i].querySelector("img").src = `https://d2wwh0934dzo2k.cloudfront.net/ghibli/${title}/${cut}.jpg`;
