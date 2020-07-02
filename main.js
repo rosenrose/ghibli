@@ -108,7 +108,8 @@ document.querySelector("#run").addEventListener("click", () => {
     if (mutex) {
         mutex = false;
         toggleButton(document.querySelector("#run"));
-        clear();
+        let items = result.querySelectorAll(".item");
+        clear(itmes);
 
         promises = [];
         for (let i=0; i<count; i++) {
@@ -184,8 +185,7 @@ function toggleButton(button) {
     }
 }
 
-function clear() {
-    let items = result.querySelectorAll(".item");
+function clear(items) {
     for (let i=count; i<items.length; i++) {
         items[i].querySelector("img").src = "";
         items[i].querySelector("p").innerText = "";
