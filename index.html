@@ -10,8 +10,12 @@
 <body>
     <h1 class="center color-white">지브리 랜덤짤 가챠</h1>
     <div id="select">
+        <div id="formatSelect">
+            <span class="bold">형식: </span>
+            <label class="color-white"><input type="radio" name="format" value="jpg" checked>짤</label>
+            <label class="color-white"><input type="radio" name="format" value="webp" disabled>움짤(개발중)</label>
+        </div>
         <div id="movieSelect">
-            <p id="loading">로딩중...</p>
             <span class="bold">작품: </span>
             <label class="color-white"><input type="radio" name="movie" value="list" checked>목록</label>
             <label class="color-white"><input type="radio" name="movie" value="checkbox">직접 선택</label><br>
@@ -40,8 +44,7 @@
             <label class="color-white"><input type="radio" name="column" value="2">2개씩 보기</label>
         </div>
     </div>
-    <div id="pick" class="center"><button type="button" id="run">뽑기!</button></div>
-    <button type="button" id="gif" style="display:none;">gif</button>
+    <div id="pick" class="center"><button type="button" id="run" disabled>로딩...</button></div>
     <div id="result"></div>
     <script type="text/javascript" src="./main.js"></script>
 </body>
