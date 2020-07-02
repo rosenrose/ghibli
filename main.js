@@ -109,7 +109,7 @@ document.querySelector("#run").addEventListener("click", () => {
         mutex = false;
         toggleButton(document.querySelector("#run"));
         let items = result.querySelectorAll(".item");
-        clear(itmes);
+        clear(items);
 
         promises = [];
         for (let i=0; i<count; i++) {
