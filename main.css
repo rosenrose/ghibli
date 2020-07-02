@@ -21,7 +21,7 @@ body {
 div {
     margin: 0px 0px 10px 0px;
 }
-button {
+#run {
     color: rgb(0,147,219);
     font-size: 60px;
 }
@@ -55,7 +55,7 @@ button {
     body {
         background-size: contain;
     }
-    button {
+    #run {
         font-size: 40px;
     }
     #select,#pick {

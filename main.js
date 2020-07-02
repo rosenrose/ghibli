@@ -4,6 +4,7 @@ async function init() {
     userSelect = [];
     count = 6;
     list = await getData("./list.json");
+    document.querySelector("#loading").style.display = "none";
 
     let movieList = document.querySelector("#movieList");
     let movieCheckbox = document.querySelectorAll("#movieCheckbox td");
@@ -20,7 +21,7 @@ async function init() {
         let input = document.createElement("input");
         input.type = "checkbox";
         input.value = i;
-        input.addEventListener('change', event => {
+        input.addEventListener("change", event => {
             if (event.target.checked == true) {
                 userSelect.push(event.target.value);
             }
@@ -137,6 +138,26 @@ document.querySelector("#run").addEventListener("click", function() {
         }
         mutex = true;
     }
+});
+
+document.querySelector("#gif").addEventListener("click", function() {
+    let randMovie = getRandomInt(0, list.movies.length);
+    let title = list.movies[randMovie].name;
+    let randCut = getRandomInt(0, list.movies[randMovie].cut.length-60);
+    let randCuts = list.movies[randMovie].cut.slice(randCut, randCut+60);
+    let cuts = [];
+    for (let cut of randCuts) {
+        cuts.push(cut.toString().padStart(5,"0"))
+    }
+    cuts = cuts.join(",")
+
+    fetch("http://3.34.46.170:8080/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: `title=${encodeURIComponent(title)}&cuts=${cuts}`
+    }).then(response => console.log(response));
 });
 
 function getData(url) {
