@@ -201,9 +201,6 @@ document.querySelector("#run").addEventListener("click", () => {
             for (let val of values) {
                 items[val["num"]].querySelector("img").src = val["url"];
             }
-            fetch(`https://rosenrose.co/${time}`)
-            .then(response => response.text())
-            .then(text => console.log(text));
         }
     })
 });
