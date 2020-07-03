@@ -28,9 +28,8 @@ var app = http.createServer((req, res) => {
             let ip = req.connection.remoteAddress;
             let params = urlParse(body);
             let date = new Date(parseInt(params["time"]));
-            if(debug) console.log(`${date.getMonth()}/${date.getDate()} ${date.getHours()}-${date.getMinutes()}-${date.getSeconds()} ${req.connection.remoteAddress}`)
+            if(debug) console.log(`${date.getMonth()}/${date.getDate()} ${date.getHours()}-${date.getMinutes()}-${date.getSeconds()} ${ip}`)
 
-            params["cuts"] = params["cuts"].split(",").map(x => x.padStart(5,"0"));
             let dir = `./${params["time"]}/${params["num"]}`;
             // let dir = `./d/${params["num"]}`;
             makeDirs(dir)
@@ -79,11 +78,19 @@ var app = http.createServer((req, res) => {
             });
         });
     }
+    else if (url == "/delete") {
+        exec("find . ! -name server.js -exec rm -rf {} \\;");
+    }
     else {
         return req.on("end", () => {
             res.statusCode = 200;
             res.setHeader("Content-Type", "text/plain");
-            res.end(url);
+            fs.readdir(`..${url}`, (err, files) => {
+                if(err) console.error(err);
+                else {
+                    res.end(files.join("\n"));
+                }
+            });
         })
     }
 })
@@ -111,8 +118,11 @@ function makeDirs(dir) {
 
 function imagesDownload(dir, params) {
     let promises = [];
-    for (let i=0; i<params["cuts"].length; i++) {
-        promises.push(download(`https://d2wwh0934dzo2k.cloudfront.net/ghibli/${encodeURIComponent(params["title"])}/${params["cuts"][i]}.jpg`,
+    let cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli";
+    // let cloud = "http://crazytempler.ipdisk.co.kr:4569/publist/HDD1/Public/ghibli";
+    let cut = parseInt(params["cut"]);
+    for (let i=0; i<60; i++) {
+        promises.push(download(`${cloud}/${encodeURIComponent(params["title"])}/${(cut+i).toString().padStart(5,"0")}.jpg`,
             `${dir}/${(i+1).toString().padStart(5,"0")}.jpg`));
     }
     return Promise.all(promises);
@@ -128,7 +138,7 @@ function download(uri, filename) {
 
 function ffmpeg(dir) {
     return new Promise(resolve => {
-        exec(`ffmpeg -framerate 12 -i "${dir}/%5d.jpg" -vf "scale=960:-1:flags=lanczos" -loop 0 ${dir}.webp -y`,
+        exec(`ffmpeg -framerate 12 -i "${dir}/%5d.jpg" -vf "scale=800:-1" -loop 0 ${dir}.webp -y`,
         (err) => {
             if (err) console.error(err);
             else resolve(`${dir}.webp`);

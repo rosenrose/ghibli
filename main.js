@@ -160,15 +160,14 @@ document.querySelector("#run").addEventListener("click", () => {
         else if (format == "webp") {
             randCut = getRandomInt(0, list.movies[randMovie].cut.length-60);
         }
-        let cut = list.movies[randMovie].cut[randCut].toString().padStart(5,"0");            
+        let cut = list.movies[randMovie].cut[randCut];
         let title = list.movies[randMovie].name;
         let image = items[i].querySelector("img");
 
         if (format == "jpg") {
-            promises.push(loadImage(image, `https://d2wwh0934dzo2k.cloudfront.net/ghibli/${title}/${cut}.jpg`));
+            promises.push(loadImage(image, `https://d2wwh0934dzo2k.cloudfront.net/ghibli/${title}/${cut.toString().padStart(5,"0")}.jpg`));
         }
         else if (format == "webp") {
-            let cuts = list.movies[randMovie].cut.slice(randCut, randCut+60);
             promises.push(fetch("https://rosenrose.co/webp", {
                 method: "POST",
                 headers: {
@@ -178,7 +177,7 @@ document.querySelector("#run").addEventListener("click", () => {
                     time: time,
                     num: i+1,
                     title: title,
-                    cuts: cuts.toString()
+                    cut: cut
                 })
             }).then(response => response.blob())
             .then(blob => {
