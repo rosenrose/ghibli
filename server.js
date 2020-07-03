@@ -16,6 +16,7 @@ var app = http.createServer((req, res) => {
 
     let url = req.url;
     if (url == "/webp") {
+        console.log("ddd")
         res.setHeader("Content-Type", "application/octet-stream");
         return req.on("end", () => {
             res.on("error", (err) => {
