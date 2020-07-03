@@ -174,7 +174,7 @@ document.querySelector("#run").addEventListener("click", () => {
             }
             else if (format == "webp") {
                 let cuts = list.movies[randMovie].cut.slice(randCut, randCut+60);
-                promises.push(fetch("http://3.34.46.170:8080/webp", {
+                promises.push(fetch("https://rosenrose.co:8080/webp", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/x-www-form-urlencoded",
