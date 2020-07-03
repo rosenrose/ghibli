@@ -21,6 +21,9 @@ body {
 div {
     margin: 0px 0px 5px 0px;
 }
+#numSelect label:nth-child(n+2):nth-child(-n+3){
+    display: none;
+}
 #run {
     color: rgb(0,147,219);
     font-size: 60px;
@@ -76,7 +79,4 @@ div {
     table {
         border-collapse: collapse;
     }
-    /* #numSelect label:nth-child(n+4){
-        display: none;
-    } */
 }

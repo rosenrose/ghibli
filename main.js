@@ -56,6 +56,28 @@ let radios = document.querySelectorAll("#formatSelect input");
 for (let radio of radios) {
     radio.addEventListener("change", event => {
         format = event.target.value;
+        let labels = document.querySelectorAll("#numSelect label");
+        let inputs = document.querySelectorAll("#numSelect input");
+        if (format == "jpg") {
+            labels[0].style.display = "none";
+            labels[1].style.display = "none";
+            labels[2].style.display = "inline";
+            labels[3].style.display = "inline";
+            labels[4].style.display = "inline";
+            labels[5].style.display = "inline";
+            inputs[2].checked = true;
+            count = 6;
+        }
+        else if (format == "webp") {
+            labels[0].style.display = "inline";
+            labels[1].style.display = "inline";
+            labels[2].style.display = "none";
+            labels[3].style.display = "none";
+            labels[4].style.display = "none";
+            labels[5].style.display = "none";
+            inputs[0].checked = true;
+            count = 1;
+        }
     });
 }
 
@@ -107,13 +129,20 @@ document.querySelector("#run").addEventListener("click", () => {
     }
     if (mutex) {
         mutex = false;
-        toggleButton(document.querySelector("#run"));
+        let runButton = document.querySelector("#run")
+        toggleButton(runButton);
         let items = result.querySelectorAll(".item");
-        clear(items);
+        if (format == "jpg") {
+            clear(items, count);
+        }
+        else if (format == "webp") {
+            clear(items, 0);
+        }
 
         promises = [];
+        let time = Date.now();
         for (let i=0; i<count; i++) {
-            let randMovie;
+            let randMovie, randCut;
             if (movieSelect == "list") {
                 if (movie == -1) {
                     randMovie = getRandomInt(0, list.movies.length);
@@ -130,12 +159,39 @@ document.querySelector("#run").addEventListener("click", () => {
                     randMovie = getRandomInt(0, list.movies.length);
                 }
             }
-            let randCut = getRandomInt(0, list.movies[randMovie].cut.length);
-
+            if (format == "jpg") {
+                randCut = getRandomInt(0, list.movies[randMovie].cut.length);
+            }
+            else if (format == "webp") {
+                randCut = getRandomInt(0, list.movies[randMovie].cut.length-60);
+            }
             let cut = list.movies[randMovie].cut[randCut].toString().padStart(5,"0");            
             let title = list.movies[randMovie].name;
             let image = items[i].querySelector("img");
-            promises.push(loadImage(image, `https://d2wwh0934dzo2k.cloudfront.net/ghibli/${title}/${cut}.jpg`));
+
+            if (format == "jpg") {
+                promises.push(loadImage(image, `https://d2wwh0934dzo2k.cloudfront.net/ghibli/${title}/${cut}.jpg`));
+            }
+            else if (format == "webp") {
+                let cuts = list.movies[randMovie].cut.slice(randCut, randCut+60);
+                promises.push(fetch("http://3.34.46.170:8080/webp", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
+                    body: urlEncode({
+                        time: time,
+                        num: i+1,
+                        title: title,
+                        cuts: cuts.toString()
+                    })
+                }).then(response => response.blob())
+                .then(blob => {
+                    return {"num": i, "url": URL.createObjectURL(blob)};
+                })
+                )
+            }
+            
             if ((movieSelect == "list" && movie == -1) || (movieSelect == "checkbox" && userSelect.length != 1)) {
                 items[i].querySelector("p").innerText = title.slice(3,-7);
             }
@@ -143,34 +199,35 @@ document.querySelector("#run").addEventListener("click", () => {
                 items[i].querySelector("p").innerText = "";
             }
         }
-        Promise.all(promises).then(() => {
+        Promise.all(promises).then((values) => {
             mutex = true;
             toggleButton(document.querySelector("#run"));
+            if (format == "webp") {
+                for (let val of values) {
+                    items[val["num"]].querySelector("img").src = val["url"];
+                }
+                fetch(`https://rosenrose.co:8080/${time}`)
+                .then(response => response.text())
+                .then(text => console.log(text));
+            }
         })
     }
 });
 
-// document.querySelector("#webp").addEventListener("click", () => {
-//     let randMovie = getRandomInt(0, list.movies.length);
-//     let title = list.movies[randMovie].name;
-//     let randCut = getRandomInt(0, list.movies[randMovie].cut.length-60);
-//     let randCuts = list.movies[randMovie].cut.slice(randCut, randCut+60);
-
-//     fetch("http://3.34.46.170:8080/webp", {
-//         method: "POST",
-//         headers: {
-//             "Content-Type": "application/x-www-form-urlencoded",
-//         },
-//         body: `count=${count}&title=${encodeURIComponent(title)}&cuts=${randCuts.toString()}`
-//     }).then(response => console.log(response));
-// });
+function urlEncode(obj) {
+    let list=[];
+    for (let key in obj) {
+        list.push(`${key}=${encodeURIComponent(obj[key])}`)
+    }
+    return list.join("&");
+}
 
 function loadImage(image, url) {
     return new Promise(resolve => {
         image.src = url;
         image.addEventListener("load", () => {
             resolve();
-        });        
+        });
     });
 }
 
@@ -185,8 +242,8 @@ function toggleButton(button) {
     }
 }
 
-function clear(items) {
-    for (let i=count; i<items.length; i++) {
+function clear(items, start) {
+    for (let i=start; i<items.length; i++) {
         items[i].querySelector("img").src = "";
         items[i].querySelector("p").innerText = "";
     }
