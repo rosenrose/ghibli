@@ -23,11 +23,13 @@ var app = http.createServer((req, res) => {
                 console.error(err);
             });
             res.statusCode = 200;
-    
+            
             let ip = req.connection.remoteAddress;
             let params = urlParse(body);
+            let date = new Date(parseInt(params["time"]));
+            console.log(`${date.getMonth()}/${date.getDate()} ${date.getHours()}-${date.getMinutes()}-${date.getSeconds()} ${req.connection.remoteAddress}`)
+
             params["cuts"] = params["cuts"].split(",").map(x => x.padStart(5,"0"));
-    
             let dir = `./${params["time"]}/${params["num"]}`;
             // let dir = `./d/${params["num"]}`;
             makeDirs(dir)

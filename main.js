@@ -124,94 +124,88 @@ for (let radio of radios) {
 }
 
 document.querySelector("#run").addEventListener("click", () => {
-    if (typeof mutex == "undefined") {
-        mutex = true;
+    let runButton = document.querySelector("#run")
+    toggleButton(runButton);
+    let items = result.querySelectorAll(".item");
+    if (format == "jpg") {
+        clear(items, count);
     }
-    if (mutex) {
-        mutex = false;
-        let runButton = document.querySelector("#run")
-        toggleButton(runButton);
-        let items = result.querySelectorAll(".item");
-        if (format == "jpg") {
-            clear(items, count);
-        }
-        else if (format == "webp") {
-            clear(items, 0);
-        }
-
-        promises = [];
-        let time = Date.now();
-        for (let i=0; i<count; i++) {
-            let randMovie, randCut;
-            if (movieSelect == "list") {
-                if (movie == -1) {
-                    randMovie = getRandomInt(0, list.movies.length);
-                }
-                else {
-                    randMovie = movie;
-                }
-            }
-            else if (movieSelect == "checkbox") {
-                if (userSelect.length > 0) {
-                    randMovie = userSelect[getRandomInt(0, userSelect.length)];
-                }
-                else {
-                    randMovie = getRandomInt(0, list.movies.length);
-                }
-            }
-            if (format == "jpg") {
-                randCut = getRandomInt(0, list.movies[randMovie].cut.length);
-            }
-            else if (format == "webp") {
-                randCut = getRandomInt(0, list.movies[randMovie].cut.length-60);
-            }
-            let cut = list.movies[randMovie].cut[randCut].toString().padStart(5,"0");            
-            let title = list.movies[randMovie].name;
-            let image = items[i].querySelector("img");
-
-            if (format == "jpg") {
-                promises.push(loadImage(image, `https://d2wwh0934dzo2k.cloudfront.net/ghibli/${title}/${cut}.jpg`));
-            }
-            else if (format == "webp") {
-                let cuts = list.movies[randMovie].cut.slice(randCut, randCut+60);
-                promises.push(fetch("https://rosenrose.co/webp", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/x-www-form-urlencoded",
-                    },
-                    body: urlEncode({
-                        time: time,
-                        num: i+1,
-                        title: title,
-                        cuts: cuts.toString()
-                    })
-                }).then(response => response.blob())
-                .then(blob => {
-                    return {"num": i, "url": URL.createObjectURL(blob)};
-                })
-                )
-            }
-            
-            if ((movieSelect == "list" && movie == -1) || (movieSelect == "checkbox" && userSelect.length != 1)) {
-                items[i].querySelector("p").innerText = title.slice(3,-7);
+    else if (format == "webp") {
+        clear(items, 0);
+    }
+    
+    let time = Date.now();
+    promises = [];
+    for (let i=0; i<count; i++) {
+        let randMovie, randCut;
+        if (movieSelect == "list") {
+            if (movie == -1) {
+                randMovie = getRandomInt(0, list.movies.length);
             }
             else {
-                items[i].querySelector("p").innerText = "";
+                randMovie = movie;
             }
         }
-        Promise.all(promises).then((values) => {
-            mutex = true;
-            toggleButton(document.querySelector("#run"));
-            if (format == "webp") {
-                for (let val of values) {
-                    items[val["num"]].querySelector("img").src = val["url"];
-                }
-                fetch(`https://rosenrose.co/${time}`)
-                .then(response => response.text())
-                .then(text => console.log(text));
+        else if (movieSelect == "checkbox") {
+            if (userSelect.length > 0) {
+                randMovie = userSelect[getRandomInt(0, userSelect.length)];
             }
-        })
+            else {
+                randMovie = getRandomInt(0, list.movies.length);
+            }
+        }
+        if (format == "jpg") {
+            randCut = getRandomInt(0, list.movies[randMovie].cut.length);
+        }
+        else if (format == "webp") {
+            randCut = getRandomInt(0, list.movies[randMovie].cut.length-60);
+        }
+        let cut = list.movies[randMovie].cut[randCut].toString().padStart(5,"0");            
+        let title = list.movies[randMovie].name;
+        let image = items[i].querySelector("img");
+
+        if (format == "jpg") {
+            promises.push(loadImage(image, `https://d2wwh0934dzo2k.cloudfront.net/ghibli/${title}/${cut}.jpg`));
+        }
+        else if (format == "webp") {
+            let cuts = list.movies[randMovie].cut.slice(randCut, randCut+60);
+            promises.push(fetch("https://rosenrose.co/webp", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: urlEncode({
+                    time: time,
+                    num: i+1,
+                    title: title,
+                    cuts: cuts.toString()
+                })
+            }).then(response => response.blob())
+            .then(blob => {
+                return {"num": i, "url": URL.createObjectURL(blob)};
+            })
+            );
+        }
+        
+        if ((movieSelect == "list" && movie == -1) || (movieSelect == "checkbox" && userSelect.length != 1)) {
+            items[i].querySelector("p").innerText = title.slice(3,-7);
+        }
+        else {
+            items[i].querySelector("p").innerText = "";
+        }
     }
+
+    Promise.all(promises).then((values) => {
+        toggleButton(document.querySelector("#run"));
+        if (format == "webp") {
+            for (let val of values) {
+                items[val["num"]].querySelector("img").src = val["url"];
+            }
+            fetch(`https://rosenrose.co/${time}`)
+            .then(response => response.text())
+            .then(text => console.log(text));
+        }
+    })
 });
 
 function urlEncode(obj) {
