@@ -174,7 +174,7 @@ document.querySelector("#run").addEventListener("click", () => {
             }
             else if (format == "webp") {
                 let cuts = list.movies[randMovie].cut.slice(randCut, randCut+60);
-                promises.push(fetch("https://rosenrose.co:8080/webp", {
+                promises.push(fetch("https://rosenrose.co/webp", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/x-www-form-urlencoded",
@@ -206,7 +206,7 @@ document.querySelector("#run").addEventListener("click", () => {
                 for (let val of values) {
                     items[val["num"]].querySelector("img").src = val["url"];
                 }
-                fetch(`https://rosenrose.co:8080/${time}`)
+                fetch(`https://rosenrose.co/${time}`)
                 .then(response => response.text())
                 .then(text => console.log(text));
             }
