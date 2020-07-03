@@ -14,68 +14,78 @@ var app = http.createServer((req, res) => {
             body += data;
     })
     res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Content-Type", "application/octet-stream");
     
-    return req.on("end", () => {
-        res.on("error", (err) => {
-            console.log("response error");
-            console.error(err);
-        });
-        res.statusCode = 200;
-        
-        let ip = req.connection.remoteAddress;
-        let params = urlParse(body);
-        let date = new Date(parseInt(params["time"]));
-        if(debug) console.log(`${date.getMonth()}/${date.getDate()} ${date.getHours()}-${date.getMinutes()}-${date.getSeconds()} ${req.connection.remoteAddress}`)
+    let url = req.url;
+    if (url == "/webp") {
+        res.setHeader("Content-Type", "application/octet-stream");
+        return req.on("end", () => {
+            res.on("error", (err) => {
+                console.log("response error");
+                console.error(err);
+            });
+            res.statusCode = 200;
+            
+            let ip = req.connection.remoteAddress;
+            let params = urlParse(body);
+            let date = new Date(parseInt(params["time"]));
+            if(debug) console.log(`${date.getMonth()}/${date.getDate()} ${date.getHours()}-${date.getMinutes()}-${date.getSeconds()} ${req.connection.remoteAddress}`)
 
-        params["cuts"] = params["cuts"].split(",").map(x => x.padStart(5,"0"));
-        let dir = `./${params["time"]}/${params["num"]}`;
-        // let dir = `./d/${params["num"]}`;
-        makeDirs(dir)
-        .then(value => {
-            if(debug) console.log(`make ${value} finish`);
-            return imagesDownload(value, params);
-        }).then(values => {
-            if(debug) console.log(`downlaod images to ${dir} finish`);
-            return ffmpeg(dir);
-        }).then(webp => {
-            if(debug) console.log(`conversion ${webp} finish`);
-            exec(`rm -rf ${dir}`, ()=>{});
-            return new Promise(resolve => {
-                fs.readFile(webp, (err, data) => {
-                    if (err) console.error(err);
-                    else resolve(data);
-                });
-            })
-        }).then(data => {
-            if(debug) console.log(`read file ${dir}.webp finish`);
-            return new Promise(resolve => {
-                res.end(data, () => resolve(`${dir}.webp`));
-            })
-        }).then(webp => {
-            if(debug) console.log(`send file ${webp} finish`);
-            return new Promise(resolve => {
-                fs.unlink(webp, () => resolve(`./${params["time"]}`));
-            })
-        }).then(value => {
-            if(debug) console.log(`delete file ${dir}.webp finish`);
-            return new Promise(resolve => {
-                fs.readdir(value, (err, files) => {
-                    if (err) console.error(err);
-                    else resolve(files.length);
-                });
-            })
-        }).then(length => {
-            if(debug) console.log(`read Dir ./${params["time"]} finish`);
-            return new Promise(resolve => {
-                if (length == 0) {
-                    fs.rmdir(`./${params["time"]}`, () => resolve(`./${params["time"]}`));
-                }
-            })
-        }).then(value => {
-            if(debug) console.log(`remove Dir ${value} finish`);
+            params["cuts"] = params["cuts"].split(",").map(x => x.padStart(5,"0"));
+            let dir = `./${params["time"]}/${params["num"]}`;
+            // let dir = `./d/${params["num"]}`;
+            makeDirs(dir)
+            .then(value => {
+                if(debug) console.log(`make ${value} finish`);
+                return imagesDownload(value, params);
+            }).then(values => {
+                if(debug) console.log(`downlaod images to ${dir} finish`);
+                return ffmpeg(dir);
+            }).then(webp => {
+                if(debug) console.log(`conversion ${webp} finish`);
+                exec(`rm -rf ${dir}`, ()=>{});
+                return new Promise(resolve => {
+                    fs.readFile(webp, (err, data) => {
+                        if (err) console.error(err);
+                        else resolve(data);
+                    });
+                })
+            }).then(data => {
+                if(debug) console.log(`read file ${dir}.webp finish`);
+                return new Promise(resolve => {
+                    res.end(data, () => resolve(`${dir}.webp`));
+                })
+            }).then(webp => {
+                if(debug) console.log(`send file ${webp} finish`);
+                return new Promise(resolve => {
+                    fs.unlink(webp, () => resolve(`./${params["time"]}`));
+                })
+            }).then(value => {
+                if(debug) console.log(`delete file ${dir}.webp finish`);
+                return new Promise(resolve => {
+                    fs.readdir(value, (err, files) => {
+                        if (err) console.error(err);
+                        else resolve(files.length);
+                    });
+                })
+            }).then(length => {
+                if(debug) console.log(`read Dir ./${params["time"]} finish`);
+                return new Promise(resolve => {
+                    if (length == 0) {
+                        fs.rmdir(`./${params["time"]}`, () => resolve(`./${params["time"]}`));
+                    }
+                })
+            }).then(value => {
+                if(debug) console.log(`remove Dir ${value} finish`);
+            });
         });
-    });
+    }
+    else {
+        return req.on("end", () => {
+            res.statusCode = 200;
+            res.setHeader("Content-Type", "text/plain");
+            res.end(url);
+        })
+    }
 })
 app.listen(8080);
 
