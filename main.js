@@ -137,7 +137,7 @@ document.querySelector("#run").addEventListener("click", () => {
     let time = Date.now();
     promises = [];
     for (let i=0; i<count; i++) {
-        let randMovie, randCut;
+        let randMovie;
         if (movieSelect == "list") {
             if (movie == -1) {
                 randMovie = getRandomInt(0, list.movies.length);
@@ -155,17 +155,18 @@ document.querySelector("#run").addEventListener("click", () => {
             }
         }
         if (format == "jpg") {
-            randCut = getRandomInt(0, list.movies[randMovie].cut.length);
+            cut = getRandomInt(1, list.movies[randMovie].cut+1);
         }
         else if (format == "webp") {
-            randCut = getRandomInt(0, list.movies[randMovie].cut.length-60);
+            cut = getRandomInt(1, list.movies[randMovie].cut-58);
         }
-        let cut = list.movies[randMovie].cut[randCut];
         let title = list.movies[randMovie].name;
         let image = items[i].querySelector("img");
 
         if (format == "jpg") {
-            promises.push(loadImage(image, `https://d2wwh0934dzo2k.cloudfront.net/ghibli/${title}/${cut.toString().padStart(5,"0")}.jpg`));
+            // let cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli";
+            let cloud = "http://kjw4569.iptime.org:8080/ghibli";
+            promises.push(loadImage(image, `${cloud}/${title}/${cut.toString().padStart(5,"0")}.jpg`));
         }
         else if (format == "webp") {
             promises.push(fetch("https://rosenrose.co/webp", {
@@ -180,7 +181,7 @@ document.querySelector("#run").addEventListener("click", () => {
                     cut: cut
                 })
                 }).then(response => response.blob())
-                .then(blob => items[i].querySelector("img").src = URL.createObjectURL(blob))
+                .then(blob => image.src = URL.createObjectURL(blob))
             );
         }
         

@@ -122,8 +122,8 @@ function makeDirs(dir) {
 
 function imagesDownload(dir, params) {
     let promises = [];
-    let cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli";
-    // let cloud = "http://crazytempler.ipdisk.co.kr:4569/publist/HDD1/Public/ghibli";
+    // let cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli";
+    let cloud = "http://kjw4569.iptime.org:8080/ghibli";
     let cut = parseInt(params["cut"]);
     for (let i=0; i<60; i++) {
         promises.push(download(`${cloud}/${encodeURIComponent(params["title"])}/${(cut+i).toString().padStart(5,"0")}.jpg`,
