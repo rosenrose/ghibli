@@ -79,7 +79,11 @@ var app = http.createServer((req, res) => {
         });
     }
     else if (url == "/delete") {
-        exec("find . ! -name server.js -exec rm -rf {} \\;");
+        exec("find . ! -name server.js -exec rm -rf {} \\;", () => {
+            return req.on("end", () => {
+                res.statusCode = 200;
+            })
+        });
     }
     else {
         return req.on("end", () => {
@@ -139,7 +143,8 @@ function download(uri, filename) {
 function ffmpeg(dir) {
     return new Promise(resolve => {
         exec(`ffmpeg -framerate 12 -i "${dir}/%5d.jpg" -vf "scale=800:-1" -loop 0 ${dir}.webp -y`,
-        (err) => {
+        (err, stdout, stderr) => {
+            console.log(stdout);
             if (err) console.error(err);
             else resolve(`${dir}.webp`);
         });            

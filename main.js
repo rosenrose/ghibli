@@ -179,10 +179,8 @@ document.querySelector("#run").addEventListener("click", () => {
                     title: title,
                     cut: cut
                 })
-            }).then(response => response.blob())
-            .then(blob => {
-                return {"num": i, "url": URL.createObjectURL(blob)};
-            })
+                }).then(response => response.blob())
+                .then(blob => items[i].querySelector("img").src = URL.createObjectURL(blob))
             );
         }
         
@@ -194,13 +192,8 @@ document.querySelector("#run").addEventListener("click", () => {
         }
     }
 
-    Promise.all(promises).then((values) => {
+    Promise.all(promises).then(() => {
         toggleButton(document.querySelector("#run"));
-        if (format == "webp") {
-            for (let val of values) {
-                items[val["num"]].querySelector("img").src = val["url"];
-            }
-        }
     })
 });
 
