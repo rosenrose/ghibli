@@ -55,13 +55,13 @@ var app = http.createServer((req, res) => {
                     else {
                         res.end(data, () => {
                             resolve(dir);
-                            if(debug) console.log(`send file ${dir}.webp finish`);
+                            if(debug) console.log(`send file ${dir}/webp.webp finish`);
                         });
                     }
                 })
             }).catch(() => {
                 if(debug) console.log("connection destroyed");
-            }).then((dir) => {
+            }).then(() => {
                 return new Promise(resolve => {
                     exec(`rm -rf ${dir}`, () => {
                         resolve(`./${params["time"]}`);
@@ -142,9 +142,12 @@ function imagesDownload(dir, params) {
         promises.push(download(`${cloud}/${encodeURIComponent(params["title"])}/${(cut+i).toString().padStart(5,"0")}.jpg`,
             `${dir}/${(i+1).toString().padStart(5,"0")}.jpg`));
     }
-    return Promise.all(promises).then(resolve => {
-        resolve();
-        if(debug) console.log(`downlaod images to ${dir} finish`);
+
+    return Promise.all(promises).then(() => {
+        return new Promise(resolve => {
+            resolve();
+            if(debug) console.log(`downlaod images to ${dir} finish`);
+        })
     });
 }
 
@@ -158,14 +161,14 @@ function download(uri, filename) {
 
 function ffmpeg(dir) {
     return new Promise((resolve,reject) => {
-        exec(`ffmpeg -framerate 12 -i "${dir}/%5d.jpg" -vf "scale=800:-1" -loop 0 ${dir}/webp.webp -process pipe:1`,
+        exec(`ffmpeg -framerate 12 -i "${dir}/%5d.jpg" -vf "scale=800:-1" -loop 0 ${dir}/webp.webp -progress pipe:1`,
         (err) => {
             if (err) reject(err);
             else {
                 resolve(`${dir}/webp.webp`);
-                if(debug) console.log(`conversion ${dir}/webp finish`);
+                if(debug) console.log(`conversion ${dir}/webp.webp finish`);
             }
-        }).stdout("on", data => {
+        }).stdout.on("data", data => {
             // console.log(data);
         })            
     });
