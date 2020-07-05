@@ -144,10 +144,7 @@ function imagesDownload(dir, params) {
     }
 
     return Promise.all(promises).then(() => {
-        return new Promise(resolve => {
-            resolve();
-            if(debug) console.log(`downlaod images to ${dir} finish`);
-        })
+        if(debug) console.log(`downlaod images to ${dir} finish`);
     });
 }
 

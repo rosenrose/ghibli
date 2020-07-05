@@ -180,7 +180,10 @@ document.querySelector("#run").addEventListener("click", () => {
                     title: title,
                     cut: cut
                 })
-                }).then(response => response.blob())
+                }).then(response => {
+                    console.log(response.headers.get("Content-Type"));
+                    return response.blob();
+                })
                 .then(blob => image.src = URL.createObjectURL(blob))
             );
         }
