@@ -164,8 +164,8 @@ document.querySelector("#run").addEventListener("click", () => {
         let image = items[i].querySelector("img");
 
         if (format == "jpg") {
-            // let cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli";
-            let cloud = "http://kjw4569.iptime.org:8080/ghibli";
+            let cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli";
+            // let cloud = "http://kjw4569.iptime.org:8080/ghibli";
             promises.push(loadImage(image, `${cloud}/${title}/${cut.toString().padStart(5,"0")}.jpg`));
         }
         else if (format == "webp") {

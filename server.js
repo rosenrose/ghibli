@@ -25,65 +25,77 @@ var app = http.createServer((req, res) => {
             });
             res.statusCode = 200;
             
-            let ip = req.connection.remoteAddress;
+            let ip = req.socket.remoteAddress;
             let params = urlParse(body);
             let date = new Date(parseInt(params["time"]));
-            if(debug) console.log(`${date.getMonth()}/${date.getDate()} ${date.getHours()}-${date.getMinutes()}-${date.getSeconds()} ${ip}`)
+            if(debug) console.log(`${date.getMonth()}/${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} ${ip}`)
 
             let dir = `./${params["time"]}/${params["num"]}`;
             // let dir = `./d/${params["num"]}`;
             makeDirs(dir)
-            .then(value => {
-                if(debug) console.log(`make ${value} finish`);
-                return imagesDownload(value, params);
-            }).then(values => {
-                if(debug) console.log(`downlaod images to ${dir} finish`);
+            .then(dir => {
+                return imagesDownload(dir, params);
+            }).then(() => {
                 return ffmpeg(dir);
+            }).catch(err => {
+                if(debug) console.error(err);
             }).then(webp => {
-                if(debug) console.log(`conversion ${webp} finish`);
-                exec(`rm -rf ${dir}`, ()=>{});
                 return new Promise(resolve => {
                     fs.readFile(webp, (err, data) => {
                         if (err) console.error(err);
-                        else resolve(data);
+                        else {
+                            resolve(data);
+                            if(debug) console.log(`read file ${webp} finish`);
+                        };
                     });
                 })
             }).then(data => {
-                if(debug) console.log(`read file ${dir}.webp finish`);
-                return new Promise(resolve => {
-                    res.end(data, () => resolve(`${dir}.webp`));
+                return new Promise((resolve,reject) => {
+                    if(req.socket.destroyed) reject();
+                    else {
+                        res.end(data, () => {
+                            resolve(dir);
+                            if(debug) console.log(`send file ${dir}.webp finish`);
+                        });
+                    }
                 })
-            }).then(webp => {
-                if(debug) console.log(`send file ${webp} finish`);
+            }).catch(() => {
+                if(debug) console.log("connection destroyed");
+            }).then((dir) => {
                 return new Promise(resolve => {
-                    fs.unlink(webp, () => resolve(`./${params["time"]}`));
+                    exec(`rm -rf ${dir}`, () => {
+                        resolve(`./${params["time"]}`);
+                        if(debug) console.log(`remove Dir ${dir} finish`);
+                    });
                 })
             }).then(value => {
-                if(debug) console.log(`delete file ${dir}.webp finish`);
                 return new Promise(resolve => {
                     fs.readdir(value, (err, files) => {
                         if (err) console.error(err);
-                        else resolve(files.length);
+                        else {
+                            resolve(files.length);
+                            if(debug) console.log(`read Dir ./${params["time"]} finish`);
+                        }
                     });
                 })
             }).then(length => {
-                if(debug) console.log(`read Dir ./${params["time"]} finish`);
                 return new Promise(resolve => {
                     if (length == 0) {
-                        fs.rmdir(`./${params["time"]}`, () => resolve(`./${params["time"]}`));
+                        fs.rmdir(`./${params["time"]}`, () => {
+                            resolve();
+                            if(debug) console.log(`remove Dir ./${params["time"]} finish`);
+                        });
                     }
                 })
-            }).then(value => {
-                if(debug) console.log(`remove Dir ${value} finish`);
             });
         });
     }
     else if (url == "/delete") {
-        exec("find . ! -name server.js -exec rm -rf {} \\;", () => {
-            return req.on("end", () => {
-                res.statusCode = 200;
-            })
-        });
+        return req.on("end", () => {
+            exec("find . ! -name server.js -exec rm -rf {} \\;", () => {
+                res.end("")
+            });
+        })
     }
     else {
         return req.on("end", () => {
@@ -115,6 +127,7 @@ function makeDirs(dir) {
             if (err) console.error(err);
             else {
                 resolve(dir);
+                if(debug) console.log(`make ${dir} finish`);
             }
         });
     })
@@ -122,14 +135,17 @@ function makeDirs(dir) {
 
 function imagesDownload(dir, params) {
     let promises = [];
-    // let cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli";
-    let cloud = "http://kjw4569.iptime.org:8080/ghibli";
+    let cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli";
+    // let cloud = "http://kjw4569.iptime.org:8080/ghibli";
     let cut = parseInt(params["cut"]);
     for (let i=0; i<60; i++) {
         promises.push(download(`${cloud}/${encodeURIComponent(params["title"])}/${(cut+i).toString().padStart(5,"0")}.jpg`,
             `${dir}/${(i+1).toString().padStart(5,"0")}.jpg`));
     }
-    return Promise.all(promises);
+    return Promise.all(promises).then(resolve => {
+        resolve();
+        if(debug) console.log(`downlaod images to ${dir} finish`);
+    });
 }
 
 function download(uri, filename) {
@@ -141,12 +157,16 @@ function download(uri, filename) {
 }
 
 function ffmpeg(dir) {
-    return new Promise(resolve => {
-        exec(`ffmpeg -framerate 12 -i "${dir}/%5d.jpg" -vf "scale=800:-1" -loop 0 ${dir}.webp -y`,
-        (err, stdout, stderr) => {
-            console.log(stdout);
-            if (err) console.error(err);
-            else resolve(`${dir}.webp`);
-        });            
+    return new Promise((resolve,reject) => {
+        exec(`ffmpeg -framerate 12 -i "${dir}/%5d.jpg" -vf "scale=800:-1" -loop 0 ${dir}/webp.webp -process pipe:1`,
+        (err) => {
+            if (err) reject(err);
+            else {
+                resolve(`${dir}/webp.webp`);
+                if(debug) console.log(`conversion ${dir}/webp finish`);
+            }
+        }).stdout("on", data => {
+            // console.log(data);
+        })            
     });
 }
