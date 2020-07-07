@@ -1,12 +1,16 @@
-format = "jpg";
-movieSelect = "list";
-movie = -1;
-userSelect = [];
-count = 6;
+var format = "jpg";
+var movieSelect = "list";
+var movie = -1;
+var userSelect = [];
+var count = 6;
+var runButton = document.querySelector("#run");
+var cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli";
+// var cloud = "http://kjw4569.iptime.org:8080/ghibli";
+
 fetch("./list.json").then(response => response.json())
     .then(json => {
     list = json;
-    toggleButton(document.querySelector("#run"));
+    toggleButton(runButton);
 
     let movieList = document.querySelector("#movieList");
     let movieCheckbox = document.querySelectorAll("#movieCheckbox td");
@@ -123,8 +127,7 @@ for (let radio of radios) {
     });
 }
 
-document.querySelector("#run").addEventListener("click", () => {
-    let runButton = document.querySelector("#run")
+runButton.addEventListener("click", () => {
     toggleButton(runButton);
     let items = result.querySelectorAll(".item");
     if (format == "jpg") {
@@ -135,7 +138,7 @@ document.querySelector("#run").addEventListener("click", () => {
     }
     
     let time = Date.now();
-    promises = [];
+    let promises = [];
     for (let i=0; i<count; i++) {
         let randMovie;
         if (movieSelect == "list") {
@@ -154,21 +157,15 @@ document.querySelector("#run").addEventListener("click", () => {
                 randMovie = getRandomInt(0, list.movies.length);
             }
         }
-        if (format == "jpg") {
-            cut = getRandomInt(1, list.movies[randMovie].cut+1);
-        }
-        else if (format == "webp") {
-            cut = getRandomInt(1, list.movies[randMovie].cut-58);
-        }
+
         let title = list.movies[randMovie].name;
         let image = items[i].querySelector("img");
-
         if (format == "jpg") {
-            let cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli";
-            // let cloud = "http://kjw4569.iptime.org:8080/ghibli";
+            cut = getRandomInt(1, list.movies[randMovie].cut+1);
             promises.push(loadImage(image, `${cloud}/${title}/${cut.toString().padStart(5,"0")}.jpg`));
         }
         else if (format == "webp") {
+            cut = getRandomInt(1, list.movies[randMovie].cut-58);
             promises.push(fetch("https://rosenrose.co/webp", {
                 method: "POST",
                 headers: {
@@ -197,7 +194,7 @@ document.querySelector("#run").addEventListener("click", () => {
     }
 
     Promise.all(promises).then(() => {
-        toggleButton(document.querySelector("#run"));
+        toggleButton(runButton);
     })
 });
 
@@ -212,9 +209,7 @@ function urlEncode(obj) {
 function loadImage(image, url) {
     return new Promise(resolve => {
         image.src = url;
-        image.addEventListener("load", () => {
-            resolve();
-        });
+        image.addEventListener("load", () => resolve());
     });
 }
 
@@ -240,9 +235,9 @@ function getRandomInt(minInclude, maxExclude) {
     return Math.floor(Math.random() * (maxExclude - minInclude)) + minInclude;
 }
 
-function getStyleSheet(unique_title) {
+function getStyleSheet(title) {
     for(let sheet of document.styleSheets) {
-        if(sheet.title == unique_title) {
+        if(sheet.title == title) {
             return sheet;
         }
     }

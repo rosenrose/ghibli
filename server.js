@@ -74,7 +74,7 @@ var app = http.createServer((req, res) => {
                         if (err) console.error(err);
                         else {
                             resolve(files.length);
-                            if(debug) console.log(`read Dir ./${params["time"]} finish`);
+                            if(debug) console.log(`read Dir ${value} finish`);
                         }
                     });
                 })
@@ -158,7 +158,7 @@ function download(uri, filename) {
 
 function ffmpeg(dir) {
     return new Promise((resolve,reject) => {
-        exec(`ffmpeg -framerate 12 -i "${dir}/%5d.jpg" -vf "scale=800:-1" -loop 0 ${dir}/webp.webp -progress pipe:1`,
+        exec(`ffmpeg -framerate 12 -i "${dir}/%5d.jpg" -vf "scale=720:-1" -loop 0 ${dir}/webp.webp -progress pipe:1`,
         (err) => {
             if (err) reject(err);
             else {
