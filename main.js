@@ -3,6 +3,7 @@ var movieSelect = "list";
 var movie = "long";
 var userSelect = [];
 var allList = [];
+var duration = 18;
 var count = 6;
 var runButton = document.querySelector("#run");
 var cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli";
@@ -80,6 +81,7 @@ for (let radio of radios) {
         format = event.target.value;
         let labels = document.querySelectorAll("#numSelect label");
         let inputs = document.querySelectorAll("#numSelect input");
+        let duration = document.querySelector("#durationSelect");
         if (format == "jpg") {
             labels[0].style.display = "none";
             labels[1].style.display = "none";
@@ -87,6 +89,7 @@ for (let radio of radios) {
             labels[3].style.display = "inline";
             labels[4].style.display = "inline";
             labels[5].style.display = "inline";
+            duration.style.display = "none";
             inputs[2].checked = true;
             count = 6;
         }
@@ -97,6 +100,7 @@ for (let radio of radios) {
             labels[3].style.display = "none";
             labels[4].style.display = "none";
             labels[5].style.display = "none";
+            duration.style.display = "block";
             inputs[0].checked = true;
             count = 1;
         }
@@ -126,6 +130,13 @@ radios = document.querySelectorAll("#numSelect input");
 for (let radio of radios) {
     radio.addEventListener("change", event => {
         count = parseInt(event.target.value);
+    });
+}
+
+radios = document.querySelectorAll("#durationSelect input");
+for (let radio of radios) {
+    radio.addEventListener("change", event => {
+        duration = parseInt(event.target.value);
     });
 }
 
@@ -188,7 +199,7 @@ runButton.addEventListener("click", () => {
             promises.push(loadImage(image, `${cloud}/${title.name}/${cut.toString().padStart(5,"0")}.jpg`));
         }
         else if (format == "webp") {
-            cut = getRandomInt(1, title.cut-58);
+            cut = getRandomInt(1, title.cut+1-duration);
             promises.push(fetch("https://rosenrose.co/webp", {
                 method: "POST",
                 headers: {
@@ -198,7 +209,8 @@ runButton.addEventListener("click", () => {
                     time: time,
                     num: i+1,
                     title: title.name,
-                    cut: cut
+                    cut: cut,
+                    duration: duration
                 })
                 }).then(response => {
                     console.log(response.headers.get("Content-Type"));

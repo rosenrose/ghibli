@@ -21,7 +21,7 @@ body {
 div {
     margin: 0px 0px 5px 0px;
 }
-#numSelect label:nth-child(n+2):nth-child(-n+3){
+#numSelect label:nth-child(n+2):nth-child(-n+3), #movieCheckbox, #durationSelect{
     display: none;
 }
 #run {
@@ -33,6 +33,9 @@ div {
 }
 #select {
     width: 46.5%;
+}
+#result {
+    clear: left;
 }
 
 .item {
@@ -46,12 +49,6 @@ div {
 }
 .item > p {
     margin: 0px 0px 20px 0px;
-}
-#movieCheckbox {
-    display: none;
-}
-#result {
-    clear: left;
 }
 
 @media ( max-width: 768px ) {

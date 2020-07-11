@@ -28,7 +28,9 @@ var app = http.createServer((req, res) => {
             let ip = req.socket.remoteAddress;
             let params = urlParse(body);
             let date = new Date(parseInt(params["time"]));
-            if(debug) console.log(`${date.getMonth()}/${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} ${ip}`)
+            let log = `${date.getMonth()}/${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} - ${params["title"]} ${params["duration"]} - ${ip}`
+            if(debug) console.log(log);
+            exec(`echo "${log}" >> log.txt`,()=>{});
 
             let dir = `./${params["time"]}/${params["num"]}`;
             // let dir = `./d/${params["num"]}`;
@@ -92,22 +94,31 @@ var app = http.createServer((req, res) => {
     }
     else if (url == "/delete") {
         return req.on("end", () => {
-            exec("find . ! -name server.js -exec rm -rf {} \\;", () => {
+            exec("find . ! -name server.js ! -name log.txt -exec rm -rf {} \\;", () => {
                 res.end("");
             });
-        })
+        });
+    }
+    else if (url == "/log") {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "text/plain");
+        return req.on("end", () => {
+            fs.readFile("./log.txt","utf8", (data) => {
+                res.end(data);
+            })
+        });
     }
     else {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "text/plain");
         return req.on("end", () => {
-            res.statusCode = 200;
-            res.setHeader("Content-Type", "text/plain");
             fs.readdir(`..${url}`, (err, files) => {
                 if(err) console.error(err);
                 else {
                     res.end(files.join("\n"));
                 }
             });
-        })
+        });
     }
 })
 app.listen(8080);
@@ -138,7 +149,8 @@ function imagesDownload(dir, params) {
     let cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli";
     // let cloud = "http://kjw4569.iptime.org:8080/ghibli";
     let cut = parseInt(params["cut"]);
-    for (let i=0; i<60; i++) {
+    let duration = parseInt(params["duration"]);
+    for (let i=0; i<duration; i++) {
         promises.push(download(`${cloud}/${encodeURIComponent(params["title"])}/${(cut+i).toString().padStart(5,"0")}.jpg`,
             `${dir}/${(i+1).toString().padStart(5,"0")}.jpg`));
     }
