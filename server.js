@@ -101,16 +101,17 @@ var app = http.createServer((req, res) => {
     }
     else if (url == "/log") {
         res.statusCode = 200;
-        res.setHeader("Content-Type", "text/plain");
+        res.setHeader("Content-Type", "text/plain; charset=utf-8");
         return req.on("end", () => {
-            fs.readFile("./log.txt","utf8", (data) => {
-                res.end(data);
+            fs.readFile("./log.txt","utf8", (err,data) => {
+                if (err) res.end(err);
+                else res.end(data);
             })
         });
     }
     else {
         res.statusCode = 200;
-        res.setHeader("Content-Type", "text/plain");
+        res.setHeader("Content-Type", "text/plain; charset=utf-8");
         return req.on("end", () => {
             fs.readdir(`..${url}`, (err, files) => {
                 if(err) console.error(err);
