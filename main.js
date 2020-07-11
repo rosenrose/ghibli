@@ -1,7 +1,8 @@
 var format = "jpg";
 var movieSelect = "list";
-var movie = -1;
+var movie = "long";
 var userSelect = [];
+var allList = [];
 var count = 6;
 var runButton = document.querySelector("#run");
 var cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli";
@@ -14,31 +15,48 @@ fetch("./list.json").then(response => response.json())
 
     let movieList = document.querySelector("#movieList");
     let movieCheckbox = document.querySelectorAll("#movieCheckbox td");
-    for (let i=0; i<list.movies.length; i++) {
-        let name = list.movies[i].name.slice(3);
-
-        let option = document.createElement("option");
-        option.value = i;
-        option.text = name;
-        movieList.appendChild(option);
-
-        let label = document.createElement("label");
-        label.className = "color-white";
-        let input = document.createElement("input");
-        input.type = "checkbox";
-        input.value = i;
-        input.addEventListener("change", event => {
-            if (event.target.checked == true) {
-                userSelect.push(event.target.value);
+    let sum = 0;
+    for (let category in list) {
+        let i;
+        for (i=0; i<list[category].length; i++) {
+            allList.push(list[category][i]);
+            let name = list[category][i].name.slice(3);
+    
+            let option = document.createElement("option");
+            option.value = sum+i;
+            option.text = name;
+            if (category == "long") {
+                movieList.insertBefore(option,document.querySelector("option[value='game']"));
             }
-            else {
-                let idx = userSelect.indexOf(event.target.value);
-                if (idx > -1) userSelect.splice(idx, 1);
+            else if (category == "game") {
+                movieList.insertBefore(option,document.querySelector("option[value='short']"));
             }
-        });
-        label.appendChild(input);
-        label.appendChild(document.createTextNode(name.slice(0,-7)));
-        movieCheckbox[i].appendChild(label);
+            else if (category == "short") {
+                movieList.insertBefore(option,document.querySelector("option[value='etc']"));
+            }
+            else if (category == "etc") {
+                movieList.appendChild(option);
+            }
+
+            let label = document.createElement("label");
+            label.className = "color-white";
+            let input = document.createElement("input");
+            input.type = "checkbox";
+            input.value = sum+i;
+            input.addEventListener("change", event => {
+                if (event.target.checked == true) {
+                    userSelect.push(event.target.value);
+                }
+                else {
+                    let idx = userSelect.indexOf(event.target.value);
+                    if (idx > -1) userSelect.splice(idx, 1);
+                }
+            });
+            label.appendChild(input);
+            label.appendChild(document.createTextNode(name.slice(0,-7)));
+            movieCheckbox[sum+i].appendChild(label);
+        }
+        sum += i;
     }
 });
 
@@ -101,7 +119,7 @@ for (let radio of radios) {
 }
 
 document.querySelector("#movieList").addEventListener("change", event => {
-    movie = parseInt(event.target.value);
+    movie = event.target.value;
 });
 
 radios = document.querySelectorAll("#numSelect input");
@@ -140,32 +158,37 @@ runButton.addEventListener("click", () => {
     let time = Date.now();
     let promises = [];
     for (let i=0; i<count; i++) {
-        let randMovie;
+        let rand, title;
         if (movieSelect == "list") {
-            if (movie == -1) {
-                randMovie = getRandomInt(0, list.movies.length);
+            if (movie == "ghibli") {
+                rand = getRandomInt(0, allList.length-1);
+                title = allList[rand];
+            }
+            else if (!isNaN(movie)) {
+                title = allList[parseInt(movie)];
             }
             else {
-                randMovie = movie;
+                rand = getRandomInt(0, list[movie].length);
+                title = list[movie][rand];
             }
         }
         else if (movieSelect == "checkbox") {
             if (userSelect.length > 0) {
-                randMovie = userSelect[getRandomInt(0, userSelect.length)];
+                rand = userSelect[getRandomInt(0, userSelect.length)];
             }
             else {
-                randMovie = getRandomInt(0, list.movies.length);
+                rand = getRandomInt(0, allList.length);
             }
+            title = allList[rand];
         }
 
-        let title = list.movies[randMovie].name;
         let image = items[i].querySelector("img");
         if (format == "jpg") {
-            cut = getRandomInt(1, list.movies[randMovie].cut+1);
-            promises.push(loadImage(image, `${cloud}/${title}/${cut.toString().padStart(5,"0")}.jpg`));
+            cut = getRandomInt(1, title.cut+1);
+            promises.push(loadImage(image, `${cloud}/${title.name}/${cut.toString().padStart(5,"0")}.jpg`));
         }
         else if (format == "webp") {
-            cut = getRandomInt(1, list.movies[randMovie].cut-58);
+            cut = getRandomInt(1, title.cut-58);
             promises.push(fetch("https://rosenrose.co/webp", {
                 method: "POST",
                 headers: {
@@ -174,7 +197,7 @@ runButton.addEventListener("click", () => {
                 body: urlEncode({
                     time: time,
                     num: i+1,
-                    title: title,
+                    title: title.name,
                     cut: cut
                 })
                 }).then(response => {
@@ -185,8 +208,9 @@ runButton.addEventListener("click", () => {
             );
         }
         
-        if ((movieSelect == "list" && movie == -1) || (movieSelect == "checkbox" && userSelect.length != 1)) {
-            items[i].querySelector("p").innerText = title.slice(3,-7);
+        if ((movieSelect=="list" && (movie=="ghibli"||(isNaN(movie) && list[movie].length>1))) ||
+            (movieSelect=="checkbox" && userSelect.length!=1)) {
+            items[i].querySelector("p").innerText = title.name.slice(3,-7);
         }
         else {
             items[i].querySelector("p").innerText = "";

@@ -11,7 +11,7 @@ var app = http.createServer((req, res) => {
         console.error(err);
     })
     .on("data", (data) => {
-            body += data;
+        body += data;
     })
     res.setHeader("Access-Control-Allow-Origin", "*");
     
@@ -93,7 +93,7 @@ var app = http.createServer((req, res) => {
     else if (url == "/delete") {
         return req.on("end", () => {
             exec("find . ! -name server.js -exec rm -rf {} \\;", () => {
-                res.end("")
+                res.end("");
             });
         })
     }
