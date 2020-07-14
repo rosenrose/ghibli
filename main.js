@@ -85,21 +85,23 @@ for (let radio of radios) {
         if (format == "jpg") {
             labels[0].style.display = "none";
             labels[1].style.display = "none";
-            labels[2].style.display = "inline";
+            labels[2].style.display = "none";
             labels[3].style.display = "inline";
             labels[4].style.display = "inline";
             labels[5].style.display = "inline";
+            labels[6].style.display = "inline";
             duration.style.display = "none";
-            inputs[2].checked = true;
+            inputs[3].checked = true;
             count = 6;
         }
         else if (format == "webp") {
             labels[0].style.display = "inline";
             labels[1].style.display = "inline";
-            labels[2].style.display = "none";
+            labels[2].style.display = "inline";
             labels[3].style.display = "none";
             labels[4].style.display = "none";
             labels[5].style.display = "none";
+            labels[6].style.display = "none";
             duration.style.display = "block";
             inputs[0].checked = true;
             count = 1;
