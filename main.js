@@ -150,10 +150,10 @@ for (let radio of radios) {
         let rule = getCSSRule(styleSheet.rules, ".item");
 
         if (column == 3) {
-            rule.style["max-width"] = "32%";
+            rule.style["width"] = "32%";
         }
         else if (column == 2) {
-            rule.style["max-width"] = "49%";
+            rule.style["width"] = "49%";
         }
     });
 }
