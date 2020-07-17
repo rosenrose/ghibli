@@ -231,17 +231,11 @@ runButton.addEventListener("click", () => {
         }
     }
 
-    Promise.all(promises).then(() => {
-        toggleButton(runButton);
-    })
+    Promise.all(promises).then(() => toggleButton(runButton));
 });
 
 function urlEncode(obj) {
-    let list=[];
-    for (let key in obj) {
-        list.push(`${key}=${encodeURIComponent(obj[key])}`)
-    }
-    return list.join("&");
+    return Object.keys(obj).map(key => `${key}=${encodeURIComponent(obj[key])}`).join("&");
 }
 
 function loadImage(image, url) {
