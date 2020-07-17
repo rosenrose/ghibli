@@ -171,7 +171,7 @@ function download(uri, filename) {
 
 function ffmpeg(dir) {
     return new Promise((resolve,reject) => {
-        exec(`ffmpeg -framerate 12 -i "${dir}/%5d.jpg" -vf "scale=720:-1" -loop 0 -lossless 1 -preset drawing ${dir}/webp.webp -progress pipe:1`,
+        exec(`ffmpeg -framerate 12 -i "${dir}/%5d.jpg" -vf "scale=720:-1" -loop 0 -preset drawing ${dir}/webp.webp -progress pipe:1`,
         (err) => {
             if (err) reject(err);
             else {
