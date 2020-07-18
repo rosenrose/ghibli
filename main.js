@@ -149,11 +149,11 @@ for (let radio of radios) {
         let styleSheet = getStyleSheet("myCSS");
         let rule = getCSSRule(styleSheet.rules, ".item");
 
-        if (column == 3) {
-            rule.style["width"] = "32%";
-        }
-        else if (column == 2) {
+        if (column == 2) {
             rule.style["width"] = "49%";
+        }
+        else if (column == 3) {
+            rule.style["width"] = "32%";
         }
     });
 }
