@@ -28,7 +28,7 @@ var app = http.createServer((req, res) => {
             let ip = req.socket.remoteAddress;
             let params = urlParse(body);
             let date = new Date(parseInt(params["time"]));
-            let log = `${date.getMonth()}/${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} - ${params["title"]} ${params["duration"]} - ${ip}`
+            let log = `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} - ${params["title"]} ${params["duration"]} - ${ip}`
             if(debug) console.log(log);
             exec(`echo "${log}" >> log.txt`,()=>{});
 
