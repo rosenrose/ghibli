@@ -125,12 +125,7 @@ var app = http.createServer((req, res) => {
 app.listen(8080);
 
 function urlParse(urlencoded) {
-    let params = {};
-    for (let param of urlencoded.split("&")) {
-        let keyVal = param.split("=");
-        params[keyVal[0]] = decodeURIComponent(keyVal[1]);
-    }
-    return params
+    return Object.fromEntries(urlencoded.split("&").map(keyVal => keyVal.split("=")).map(([k,v]) => [k,decodeURIComponent(v)]));
 }
 
 function makeDirs(dir) {

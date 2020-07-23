@@ -195,8 +195,7 @@ runButton.addEventListener("click", () => {
 
         if (format == "jpg") {
             cut = getRandomInt(1, title.cut+1).toString().padStart(5,"0");
-            let url = `${cloud}/${title.name}/${cut}.jpg`;
-            promises.push(loadImage(image, url));
+            promises.push(loadImage(image, `${cloud}/${title.name}/${cut}.jpg`));
         }
         else if (format == "webp") {
             cut = getRandomInt(1, title.cut+1-duration).toString().padStart(5,"0");
@@ -219,9 +218,8 @@ runButton.addEventListener("click", () => {
                 .then(blob => {
                     console.log(blob);
                     image.src = URL.createObjectURL(blob);
-                    image.setAttribute("name",`${title.name.slice(3,-7)}_${cut}-${(parseInt(cut)+duration-1).toString().padStart(5,"0")}.webp`);
+                    image.setAttribute("click-event",`${title.name.slice(3,-7)}_${cut}-${(parseInt(cut)+duration-1).toString().padStart(5,"0")}.webp`);
                     image.addEventListener("click",imgSave);
-                    image.setAttribute("click-event",true);
                 })
             );
         }
@@ -239,11 +237,11 @@ runButton.addEventListener("click", () => {
 });
 
 function imgSave() {
-    saveAs(event.target.src, event.target.getAttribute("name"));
+    saveAs(event.target.src, event.target.getAttribute("click-event"));
 };
 
 function urlEncode(obj) {
-    return Object.keys(obj).map(key => `${key}=${encodeURIComponent(obj[key])}`).join("&");
+    return Object.entries(obj).map(([key,val]) => `${key}=${encodeURIComponent(val)}`).join("&");
 }
 
 function loadImage(image, url) {
