@@ -161,17 +161,15 @@ for (let radio of radios) {
 runButton.addEventListener("click", () => {
     toggleButton(runButton);
     let items = result.querySelectorAll(".item");
-    if (format == "jpg") {
-        clear(items, count);
-    }
-    else if (format == "webp") {
-        clear(items, 0);
-    }
+    clear(items);
     
     let time = Date.now();
     let promises = [];
     for (let i=0; i<count; i++) {
-        let rand, title;
+        let rand, title, cut;
+        let image = items[i].querySelector("img");
+        let p = items[i].querySelector("p");
+
         if (movieSelect == "list") {
             if (movie == "ghibli") {
                 rand = getRandomInt(0, allList.length-1);
@@ -195,13 +193,13 @@ runButton.addEventListener("click", () => {
             title = allList[rand];
         }
 
-        let image = items[i].querySelector("img");
         if (format == "jpg") {
-            cut = getRandomInt(1, title.cut+1);
-            promises.push(loadImage(image, `${cloud}/${title.name}/${cut.toString().padStart(5,"0")}.jpg`));
+            cut = getRandomInt(1, title.cut+1).toString().padStart(5,"0");
+            let url = `${cloud}/${title.name}/${cut}.jpg`;
+            promises.push(loadImage(image, url));
         }
         else if (format == "webp") {
-            cut = getRandomInt(1, title.cut+1-duration);
+            cut = getRandomInt(1, title.cut+1-duration).toString().padStart(5,"0");
             promises.push(fetch("https://rosenrose.co/webp", {
                 method: "POST",
                 headers: {
@@ -218,21 +216,31 @@ runButton.addEventListener("click", () => {
                     console.log(response.headers.get("Content-Type"));
                     return response.blob();
                 })
-                .then(blob => image.src = URL.createObjectURL(blob))
+                .then(blob => {
+                    console.log(blob);
+                    image.src = URL.createObjectURL(blob);
+                    image.setAttribute("name",`${title.name.slice(3,-7)}_${cut}-${(parseInt(cut)+duration-1).toString().padStart(5,"0")}.webp`);
+                    image.addEventListener("click",imgSave);
+                    image.setAttribute("click-event",true);
+                })
             );
         }
         
         if ((movieSelect=="list" && (movie=="ghibli"||(isNaN(movie) && list[movie].length>1))) ||
             (movieSelect=="checkbox" && userSelect.length!=1)) {
-            items[i].querySelector("p").innerText = title.name.slice(3,-7);
+            p.innerText = title.name.slice(3,-7);
         }
         else {
-            items[i].querySelector("p").innerText = "";
+            p.innerText = "";
         }
     }
 
     Promise.all(promises).then(() => toggleButton(runButton));
 });
+
+function imgSave() {
+    saveAs(event.target.src, event.target.getAttribute("name"));
+};
 
 function urlEncode(obj) {
     return Object.keys(obj).map(key => `${key}=${encodeURIComponent(obj[key])}`).join("&");
@@ -256,10 +264,15 @@ function toggleButton(button) {
     }
 }
 
-function clear(items, start) {
-    for (let i=start; i<items.length; i++) {
-        items[i].querySelector("img").src = "";
-        items[i].querySelector("p").innerText = "";
+function clear(items) {
+    for (let item of items) {
+        let img = item.querySelector("img");
+        img.src = "";
+        if (img.hasAttribute("click-event")) {
+            img.removeAttribute("click-event");
+            img.removeEventListener("click", imgSave);
+        }
+        item.querySelector("p").innerText = "";
     }
 }
 
@@ -280,5 +293,18 @@ function getCSSRule(rules, selector_text) {
         if(rule.selectorText == selector_text) {
             return rule;
         }
+    }
+}
+
+function saveAs(uri, filename) {
+    var link = document.createElement('a');
+    if (typeof link.download === 'string') {
+        document.body.appendChild(link); // Firefox requires the link to be in the body
+        link.download = filename;
+        link.href = uri;
+        link.click();
+        document.body.removeChild(link); // remove the link when done
+    } else {
+        location.replace(uri);
     }
 }

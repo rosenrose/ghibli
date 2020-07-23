@@ -44,10 +44,10 @@ div {
     margin: 0 5px;
     width: 49%;
 }
-.item > img {
+.item img {
     width: 100%;
 }
-.item > p {
+.item p {
     margin: 0px 0px 20px 0px;
 }
 

@@ -30,7 +30,7 @@ var app = http.createServer((req, res) => {
             let date = new Date(parseInt(params["time"]));
             let log = `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} - ${params["title"]} ${params["duration"]} - ${ip}`
             if(debug) console.log(log);
-            exec(`echo "${log}" >> log.txt`,()=>{});
+            exec(`echo "${log}" >> log.txt`,null);
 
             let dir = `./${params["time"]}/${params["num"]}`;
             // let dir = `./d/${params["num"]}`;
@@ -179,7 +179,7 @@ function ffmpeg(dir) {
                 if(debug) console.log(`conversion ${dir}/webp.webp finish`);
             }
         }).stdout.on("data", data => {
-            // console.log(data);
+            console.log(data);
         })            
     });
 }
