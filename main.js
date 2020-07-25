@@ -9,7 +9,7 @@ var runButton = document.querySelector("#run");
 var cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli";
 // var cloud = "http://kjw4569.iptime.org:8080/ghibli";
 
-fetch("./list.json").then(response => response.json())
+fetch("list.json").then(response => response.json())
     .then(json => {
     list = json;
     toggleButton(runButton);

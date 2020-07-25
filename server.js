@@ -32,8 +32,8 @@ var app = http.createServer((req, res) => {
             if(debug) console.log(log);
             exec(`echo "${log}" >> log.txt`,null);
 
-            let dir = `./${params["time"]}/${params["num"]}`;
-            // let dir = `./d/${params["num"]}`;
+            let dir = `${params["time"]}/${params["num"]}`;
+            // let dir = `d/${params["num"]}`;
             makeDirs(dir)
             .then(dir => {
                 return imagesDownload(dir, params);
@@ -66,7 +66,7 @@ var app = http.createServer((req, res) => {
             }).then(() => {
                 return new Promise(resolve => {
                     exec(`rm -rf ${dir}`, () => {
-                        resolve(`./${params["time"]}`);
+                        resolve(`${params["time"]}`);
                         if(debug) console.log(`remove Dir ${dir} finish`);
                     });
                 })
@@ -83,9 +83,9 @@ var app = http.createServer((req, res) => {
             }).then(length => {
                 return new Promise(resolve => {
                     if (length == 0) {
-                        fs.rmdir(`./${params["time"]}`, () => {
+                        fs.rmdir(`${params["time"]}`, () => {
                             resolve();
-                            if(debug) console.log(`remove Dir ./${params["time"]} finish`);
+                            if(debug) console.log(`remove Dir ${params["time"]} finish`);
                         });
                     }
                 })
@@ -103,7 +103,7 @@ var app = http.createServer((req, res) => {
         res.statusCode = 200;
         res.setHeader("Content-Type", "text/plain; charset=utf-8");
         return req.on("end", () => {
-            fs.readFile("./log.txt","utf8", (err,data) => {
+            fs.readFile("log.txt","utf8", (err,data) => {
                 if (err) res.end(err);
                 else res.end(data);
             })
