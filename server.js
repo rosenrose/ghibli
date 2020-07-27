@@ -16,7 +16,7 @@ var app = http.createServer((req, res) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
     
     let url = req.url;
-    if (url == "/webp") {
+    if (url.startsWith("/webp")) {
         res.setHeader("Content-Type", "application/octet-stream");
         return req.on("end", () => {
             res.on("error", (err) => {
@@ -26,7 +26,7 @@ var app = http.createServer((req, res) => {
             res.statusCode = 200;
             
             let ip = req.socket.remoteAddress;
-            let params = urlParse(body);
+            let params = urlParse(url.split("?")[1]);
             let date = new Date(parseInt(params["time"]));
             let log = `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} - ${params["title"]} ${params["duration"]} - ${ip}`
             if(debug) console.log(log);

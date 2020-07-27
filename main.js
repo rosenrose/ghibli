@@ -6,7 +6,6 @@ var allList = [];
 var duration = 18;
 var count = 6;
 var loadCount = 0;
-var imgLoadPromises = [];
 var runButton = document.querySelector("#run");
 var cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli";
 // var cloud = "http://kjw4569.iptime.org:8080/ghibli";
@@ -168,7 +167,6 @@ runButton.addEventListener("click", () => {
     clearEvents(items);
     
     let time = Date.now();
-    let webpPromises = [];
     for (let i=0; i<count; i++) {
         let image = items[i].querySelector("img");
         let p = items[i].querySelector("p");
@@ -183,26 +181,21 @@ runButton.addEventListener("click", () => {
         else if (format == "webp") {
             cut = getRandomInt(1, title.cut+1-duration);
             let lastCut = cut + duration - 1;
-            fetch("https://rosenrose.co/webp", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-                body: urlEncode({
-                    time: time,
-                    num: i+1,
-                    title: title.name,
-                    cut: cut,
-                    duration: duration
-                })
-            })
+            let request = urlEncode({
+                time: time,
+                num: i+1,
+                title: title.name,
+                cut: cut,
+                duration: duration
+            });
+            fetch(`https://rosenrose.co/webp?${request}`)
             .then(response => response.blob())
             .then(blob => {
                 console.log(blob);
                 image.src = URL.createObjectURL(blob);
                 image.setAttribute("click-event", `${titleName}_${cut.toString().padStart(5,"0")}-${lastCut.toString().padStart(5,"0")}.webp`);
                 image.addEventListener("click", imgSave);
-            })
+            });
         }
         
         if ((movieSelect=="list" && (movie=="ghibli"||(isNaN(movie) && list[movie].length>1))) ||
