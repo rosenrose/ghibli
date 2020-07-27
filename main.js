@@ -5,15 +5,15 @@ var userSelect = [];
 var allList = [];
 var duration = 18;
 var count = 6;
+var loadCount = 0;
+var imgLoadPromises = [];
 var runButton = document.querySelector("#run");
 var cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli";
 // var cloud = "http://kjw4569.iptime.org:8080/ghibli";
 
 fetch("list.json").then(response => response.json())
-    .then(json => {
+.then(json => {
     list = json;
-    toggleButton(runButton);
-
     let movieList = document.querySelector("#movieList");
     let movieCheckbox = document.querySelectorAll("#movieCheckbox td");
     let sum = 0;
@@ -59,6 +59,7 @@ fetch("list.json").then(response => response.json())
         }
         sum += i;
     }
+    toggleRunButton();
 });
 
 let result = document.querySelector("#result");
@@ -67,6 +68,7 @@ for (i=0; i<36; i++) {
     item.className = "item";
     let img = document.createElement("img");
     img.src = "";
+    img.addEventListener("load", loadFinished);
     let title = document.createElement("p");
     title.className = "shadow-white bold";
     title.innerText = "";
@@ -159,47 +161,29 @@ for (let radio of radios) {
 }
 
 runButton.addEventListener("click", () => {
-    toggleButton(runButton);
+    toggleRunButton();
+    loadCount = 0;
     let items = result.querySelectorAll(".item");
-    clear(items);
+    clear(items, count);
+    clearEvents(items);
     
     let time = Date.now();
-    let promises = [];
+    let webpPromises = [];
     for (let i=0; i<count; i++) {
-        let rand, title, cut;
         let image = items[i].querySelector("img");
         let p = items[i].querySelector("p");
-
-        if (movieSelect == "list") {
-            if (movie == "ghibli") {
-                rand = getRandomInt(0, allList.length-1);
-                title = allList[rand];
-            }
-            else if (!isNaN(movie)) {
-                title = allList[parseInt(movie)];
-            }
-            else {
-                rand = getRandomInt(0, list[movie].length);
-                title = list[movie][rand];
-            }
-        }
-        else if (movieSelect == "checkbox") {
-            if (userSelect.length > 0) {
-                rand = userSelect[getRandomInt(0, userSelect.length)];
-            }
-            else {
-                rand = getRandomInt(0, allList.length);
-            }
-            title = allList[rand];
-        }
+        let [rand, title] = getRandomMovie();
+        let titleName = title.name.slice(3,title.name.indexOf("(")).trim()
+        let cut;
 
         if (format == "jpg") {
             cut = getRandomInt(1, title.cut+1).toString().padStart(5,"0");
-            promises.push(loadImage(image, `${cloud}/${title.name}/${cut}.jpg`));
+            image.src = `${cloud}/${title.name}/${cut}.jpg`;
         }
         else if (format == "webp") {
-            cut = getRandomInt(1, title.cut+1-duration).toString().padStart(5,"0");
-            promises.push(fetch("https://rosenrose.co/webp", {
+            cut = getRandomInt(1, title.cut+1-duration);
+            let lastCut = cut + duration - 1;
+            fetch("https://rosenrose.co/webp", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded",
@@ -211,30 +195,58 @@ runButton.addEventListener("click", () => {
                     cut: cut,
                     duration: duration
                 })
-                }).then(response => {
-                    console.log(response.headers.get("Content-Type"));
-                    return response.blob();
-                })
-                .then(blob => {
-                    console.log(blob);
-                    image.src = URL.createObjectURL(blob);
-                    image.setAttribute("click-event",`${title.name.slice(3,-7)}_${cut}-${(parseInt(cut)+duration-1).toString().padStart(5,"0")}.webp`);
-                    image.addEventListener("click",imgSave);
-                })
-            );
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                console.log(blob);
+                image.src = URL.createObjectURL(blob);
+                image.setAttribute("click-event", `${titleName}_${cut.toString().padStart(5,"0")}-${lastCut.toString().padStart(5,"0")}.webp`);
+                image.addEventListener("click", imgSave);
+            })
         }
         
         if ((movieSelect=="list" && (movie=="ghibli"||(isNaN(movie) && list[movie].length>1))) ||
             (movieSelect=="checkbox" && userSelect.length!=1)) {
-            p.innerText = title.name.slice(3,-7);
+            p.innerText = titleName;
         }
         else {
             p.innerText = "";
         }
     }
-
-    Promise.all(promises).then(() => toggleButton(runButton));
 });
+
+function getRandomMovie() {
+    if (movieSelect == "list") {
+        if (movie == "ghibli") {
+            rand = getRandomInt(0, allList.length-1);
+            title = allList[rand];
+        }
+        else if (!isNaN(movie)) {
+            title = allList[parseInt(movie)];
+        }
+        else {
+            rand = getRandomInt(0, list[movie].length);
+            title = list[movie][rand];
+        }
+    }
+    else if (movieSelect == "checkbox") {
+        if (userSelect.length > 0) {
+            rand = userSelect[getRandomInt(0, userSelect.length)];
+        }
+        else {
+            rand = getRandomInt(0, allList.length);
+        }
+        title = allList[rand];
+    }
+    return [rand, title];
+}
+
+function loadFinished() {
+    loadCount++;
+    if (loadCount == count) {
+        toggleRunButton();
+    }
+}
 
 function imgSave() {
     saveAs(event.target.src, event.target.getAttribute("click-event"));
@@ -244,33 +256,31 @@ function urlEncode(obj) {
     return Object.entries(obj).map(([key,val]) => `${key}=${encodeURIComponent(val)}`).join("&");
 }
 
-function loadImage(image, url) {
-    return new Promise(resolve => {
-        image.src = url;
-        image.addEventListener("load", () => resolve());
-    });
-}
-
-function toggleButton(button) {
-    if (button.disabled) {
-        button.disabled = false;
-        button.innerText = "뽑기!";
+function toggleRunButton() {
+    if (runButton.disabled) {
+        runButton.disabled = false;
+        runButton.innerText = "뽑기!";
     }
     else {
-        button.disabled = true;
-        button.innerText = "로딩...";
+        runButton.disabled = true;
+        runButton.innerText = "로딩...";
     }
 }
 
-function clear(items) {
-    for (let item of items) {
-        let img = item.querySelector("img");
-        img.src = "";
+function clear(items, start) {
+    for (let i=start; i<items.length; i++) {
+        items[i].querySelector("img").src = "";
+        items[i].querySelector("p").innerText = "";
+    }
+}
+
+function clearEvents(items) {
+    for (let i=0; i<3; i++) {
+        let img = items[i].querySelector("img");
         if (img.hasAttribute("click-event")) {
             img.removeAttribute("click-event");
             img.removeEventListener("click", imgSave);
         }
-        item.querySelector("p").innerText = "";
     }
 }
 
@@ -295,7 +305,7 @@ function getCSSRule(rules, selector_text) {
 }
 
 function saveAs(uri, filename) {
-    var link = document.createElement('a');
+    let link = document.createElement('a');
     if (typeof link.download === 'string') {
         document.body.appendChild(link); // Firefox requires the link to be in the body
         link.download = filename;
