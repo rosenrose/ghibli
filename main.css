@@ -27,6 +27,7 @@ div {
 #run {
     color: rgb(0,147,219);
     font-size: 60px;
+    border-radius: 20px;
 }
 #select,#pick {
     float: left;
