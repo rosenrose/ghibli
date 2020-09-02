@@ -94,6 +94,10 @@ for (let radio of radios) {
             duration.style.display = "none";
             inputs[3].checked = true;
             count = 6;
+            if (runButton.disabled) {
+                runButton.disabled = false;
+                runButton.innerText = "뽑기";
+            }
         }
         else if (format == "webp") {
             labels[0].style.display = "inline";
@@ -106,6 +110,11 @@ for (let radio of radios) {
             duration.style.display = "block";
             inputs[0].checked = true;
             count = 1;
+            fetch("https://rosenrose.co/")
+            .catch(error => {
+                runButton.disabled = true;
+                runButton.innerText = "12:00 AM ~ 08:00 AM 서버중지";
+            });
         }
     });
 }
@@ -252,7 +261,7 @@ function urlEncode(obj) {
 function toggleRunButton() {
     if (runButton.disabled) {
         runButton.disabled = false;
-        runButton.innerText = "뽑기!";
+        runButton.innerText = "뽑기";
     }
     else {
         runButton.disabled = true;

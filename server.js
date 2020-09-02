@@ -13,7 +13,7 @@ var app = http.createServer((req, res) => {
     .on("data", (data) => {
         body += data;
     })
-    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Origin", "https://rosenrose.github.io");
     
     let url = req.url;
     if (url.startsWith("/webp")) {
