@@ -83,8 +83,8 @@ for (let radio of radios) {
         let labels = document.querySelectorAll("#numSelect label");
         let inputs = document.querySelectorAll("#numSelect input");
         let duration = document.querySelector("#durationSelect");
-        let rule = getCSSRule("myCSS", "#run");
-        console.log(rule)
+        let rulePC = getCSSRule("myCSS", "#run");
+        let ruleMobile = getCSSRule("myCSS", "#run", "(max-width: 768px)");
         if (format == "jpg") {
             labels[0].style.display = "none";
             labels[1].style.display = "none";
@@ -99,7 +99,8 @@ for (let radio of radios) {
             if (runButton.disabled) {
                 runButton.disabled = false;
                 runButton.textContent = "뽑기";
-                rule.style["font-size"] = "60px";
+                rulePC.style["font-size"] = "60px";
+                ruleMobile.style["font-size"] = "40px";
             }
         }
         else if (format == "webp") {
@@ -117,7 +118,8 @@ for (let radio of radios) {
             .catch(error => {
                 runButton.disabled = true;
                 runButton.textContent = "12:00 AM ~ 08:00 AM 서버중지";
-                rule.style["font-size"] = "30px";
+                rulePC.style["font-size"] = "30px";
+                ruleMobile.style["font-size"] = "20px";
             });
         }
     });
@@ -292,9 +294,13 @@ function getRandomInt(minInclude, maxExclude) {
     return Math.floor(Math.random() * (maxExclude - minInclude)) + minInclude;
 }
 
-function getCSSRule(id, query) {
+function getCSSRule(id, query, condition) {
     let sheet = Array.from(document.styleSheets).find(sheet => sheet.title == id || sheet.href == id);
-    return Array.from(sheet.rules).find(rule => rule.selectorText == query);
+    let rules = Array.from(sheet.cssRules);
+    if (condition) {
+        rules = Array.from(rules.find(rule => rule.conditionText == condition).cssRules);
+    }
+    return rules.find(rule => rule.selectorText == query);
 }
 
 function saveAs(uri, filename) {
