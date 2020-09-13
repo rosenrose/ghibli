@@ -70,7 +70,7 @@ for (i=0; i<36; i++) {
     img.addEventListener("load", loadFinished);
     let title = document.createElement("p");
     title.className = "shadow-white bold";
-    title.innerText = "";
+    title.textContent = "";
     item.appendChild(img);
     item.appendChild(title);
     result.appendChild(item);
@@ -83,6 +83,8 @@ for (let radio of radios) {
         let labels = document.querySelectorAll("#numSelect label");
         let inputs = document.querySelectorAll("#numSelect input");
         let duration = document.querySelector("#durationSelect");
+        let rule = getCSSRule("myCSS", "#run");
+        console.log(rule)
         if (format == "jpg") {
             labels[0].style.display = "none";
             labels[1].style.display = "none";
@@ -96,7 +98,8 @@ for (let radio of radios) {
             count = 6;
             if (runButton.disabled) {
                 runButton.disabled = false;
-                runButton.innerText = "뽑기";
+                runButton.textContent = "뽑기";
+                rule.style["font-size"] = "60px";
             }
         }
         else if (format == "webp") {
@@ -113,7 +116,8 @@ for (let radio of radios) {
             fetch("https://rosenrose.co/")
             .catch(error => {
                 runButton.disabled = true;
-                runButton.innerText = "12:00 AM ~ 08:00 AM 서버중지";
+                runButton.textContent = "12:00 AM ~ 08:00 AM 서버중지";
+                rule.style["font-size"] = "30px";
             });
         }
     });
@@ -156,9 +160,7 @@ radios = document.querySelectorAll("#columnSelect input");
 for (let radio of radios) {
     radio.addEventListener("change", event => {
         column = parseInt(event.target.value);
-        let styleSheet = getStyleSheet("myCSS");
-        let rule = getCSSRule(styleSheet.rules, ".item");
-
+        let rule = getCSSRule("myCSS", ".item");
         if (column == 2) {
             rule.style["width"] = "49%";
         }
@@ -209,10 +211,10 @@ runButton.addEventListener("click", () => {
         
         if ((movieSelect=="list" && (movie=="ghibli"||(isNaN(movie) && list[movie].length>1))) ||
             (movieSelect=="checkbox" && userSelect.length!=1)) {
-            p.innerText = titleName;
+            p.textContent = titleName;
         }
         else {
-            p.innerText = "";
+            p.textContent = "";
         }
     }
 });
@@ -261,18 +263,18 @@ function urlEncode(obj) {
 function toggleRunButton() {
     if (runButton.disabled) {
         runButton.disabled = false;
-        runButton.innerText = "뽑기";
+        runButton.textContent = "뽑기";
     }
     else {
         runButton.disabled = true;
-        runButton.innerText = "로딩...";
+        runButton.textContent = "로딩...";
     }
 }
 
 function clear(items, start) {
     for (let i=start; i<items.length; i++) {
         items[i].querySelector("img").src = "";
-        items[i].querySelector("p").innerText = "";
+        items[i].querySelector("p").textContent = "";
     }
 }
 
@@ -290,20 +292,9 @@ function getRandomInt(minInclude, maxExclude) {
     return Math.floor(Math.random() * (maxExclude - minInclude)) + minInclude;
 }
 
-function getStyleSheet(title) {
-    for(let sheet of document.styleSheets) {
-        if(sheet.title == title) {
-            return sheet;
-        }
-    }
-}
-
-function getCSSRule(rules, selector_text) {
-    for(let rule of rules) {
-        if(rule.selectorText == selector_text) {
-            return rule;
-        }
-    }
+function getCSSRule(id, query) {
+    let sheet = Array.from(document.styleSheets).find(sheet => sheet.title == id || sheet.href == id);
+    return Array.from(sheet.rules).find(rule => rule.selectorText == query);
 }
 
 function saveAs(uri, filename) {
