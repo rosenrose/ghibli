@@ -164,7 +164,7 @@ for (let radio of radios) {
         column = parseInt(event.target.value);
         let rule = getCSSRule("myCSS", ".item");
         if (column == 2) {
-            rule.style["width"] = "49%";
+            rule.style["width"] = "48%";
         }
         else if (column == 3) {
             rule.style["width"] = "32%";
