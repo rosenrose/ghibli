@@ -114,7 +114,7 @@ for (let radio of radios) {
             duration.style.display = "block";
             inputs[0].checked = true;
             count = 1;
-            fetch("https://d2pty0y05env0k.cloudfront.net/")
+            fetch("https://d2pty0y05env0k.cloudfront.net/webp")
             .catch(error => {
                 runButton.disabled = true;
                 runButton.textContent = "12:00 AM ~ 08:00 AM 서버중지";
