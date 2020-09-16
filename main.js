@@ -114,7 +114,7 @@ for (let radio of radios) {
             duration.style.display = "block";
             inputs[0].checked = true;
             count = 1;
-            fetch("https://rosenrose.co/")
+            fetch("http://15.165.219.179:8080/")
             .catch(error => {
                 runButton.disabled = true;
                 runButton.textContent = "12:00 AM ~ 08:00 AM 서버중지";
@@ -194,14 +194,17 @@ runButton.addEventListener("click", () => {
         else if (format == "webp") {
             cut = getRandomInt(1, title.cut+1-duration);
             let lastCut = cut + duration - 1;
-            let request = urlEncode({
-                time: time,
-                num: i+1,
-                title: title.name,
-                cut: cut,
-                duration: duration
-            });
-            fetch(`https://rosenrose.co/webp?${request}`)
+            fetch("http://d2pty0y05env0k.cloudfront.net/webp", {
+                method: "POST",
+                headers: {"Content-Type": "application/x-www-form-urlencoded"},
+                body: urlEncode({
+                    time: time,
+                    num: i+1,
+                    title: title.name,
+                    cut: cut,
+                    duration: duration
+                })
+            })
             .then(response => response.blob())
             .then(blob => {
                 console.log(blob);

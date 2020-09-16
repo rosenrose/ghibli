@@ -13,10 +13,11 @@ var app = http.createServer((req, res) => {
     .on("data", (data) => {
         body += data;
     })
-    res.setHeader("Access-Control-Allow-Origin", "https://rosenrose.github.io");
+    let allowOrigin = ["https://rosenrose.github.io", "http://kjw4569.iptime.org:8080"];
+    res.setHeader("Access-Control-Allow-Origin", allowOrigin.find(origin => origin == req.get("origin")));
     
-    let url = req.url;
-    if (url.startsWith("/webp")) {
+    let [url, parameters] = req.url.split("?");
+    if (url == "/webp") {
         res.setHeader("Content-Type", "application/octet-stream");
         return req.on("end", () => {
             res.on("error", (err) => {
@@ -26,7 +27,7 @@ var app = http.createServer((req, res) => {
             res.statusCode = 200;
             
             let ip = req.socket.remoteAddress;
-            let params = urlParse(url.split("?")[1]);
+            let params = urlParse(body);
             let date = new Date(parseInt(params["time"]));
             let log = `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} - ${params["title"]} ${params["duration"]} - ${ip}`
             if(debug) console.log(log);
@@ -116,6 +117,7 @@ var app = http.createServer((req, res) => {
             fs.readdir(`..${url}`, (err, files) => {
                 if(err) console.error(err);
                 else {
+                    res.write(parameters+"\n");
                     res.end(files.join("\n"));
                 }
             });
