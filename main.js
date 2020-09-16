@@ -194,7 +194,7 @@ runButton.addEventListener("click", () => {
         else if (format == "webp") {
             cut = getRandomInt(1, title.cut+1-duration);
             let lastCut = cut + duration - 1;
-            fetch("http://d2pty0y05env0k.cloudfront.net/webp", {
+            fetch("https://d2pty0y05env0k.cloudfront.net/webp", {
                 method: "POST",
                 headers: {"Content-Type": "application/x-www-form-urlencoded"},
                 body: urlEncode({
