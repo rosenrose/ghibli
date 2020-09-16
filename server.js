@@ -13,8 +13,12 @@ var app = http.createServer((req, res) => {
     .on("data", (data) => {
         body += data;
     })
+    let origin = req.headers.referer;
+    if (origin) {
+        origin = origin.slice(0, origin.indexOf("/", "https://".length))
+    }
     let allowOrigin = ["https://rosenrose.github.io", "http://kjw4569.iptime.org:8080"];
-    res.setHeader("Access-Control-Allow-Origin", allowOrigin.find(origin => origin == req.get("origin")));
+    res.setHeader("Access-Control-Allow-Origin", allowOrigin.find(allow => allow == origin));
     
     let [url, parameters] = req.url.split("?");
     if (url == "/webp") {
@@ -117,6 +121,7 @@ var app = http.createServer((req, res) => {
             fs.readdir(`..${url}`, (err, files) => {
                 if(err) console.error(err);
                 else {
+                    //res.write(req.headers.origin+"\n");
                     res.write(parameters+"\n");
                     res.end(files.join("\n"));
                 }
