@@ -181,7 +181,6 @@ for (let radio of radios) {
 
 runButton.addEventListener("click", () => {
     toggleRunButton();
-    loadCount = 0;
     let items = result.querySelectorAll(".item");
     clear(items, count);
     clearEvents(items);
@@ -212,7 +211,7 @@ runButton.addEventListener("click", () => {
                     duration: duration
                 })
             })
-            .then(response => {console.log(response); return response.blob();})
+            .then(response => response.blob())
             .then(blob => {
                 console.log(blob);
                 image.src = URL.createObjectURL(blob);
@@ -266,13 +265,10 @@ function getRandomMovie() {
 function loadFinished() {
     loadCount++;
     if (loadCount == count) {
+        loadCount = 0;
         toggleRunButton();
     }
 }
-
-function imgSave() {
-    saveAs(event.target.src, event.target.getAttribute("click-event"));
-};
 
 function urlEncode(obj) {
     return Object.entries(obj).map(([key,val]) => `${key}=${encodeURIComponent(val)}`).join("&");

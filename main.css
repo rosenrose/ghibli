@@ -21,7 +21,7 @@ body {
 div {
     margin: 0px 0px 5px 0px;
 }
-#numSelect label:nth-child(n+2):nth-child(-n+4), #movieCheckbox, #durationSelect{
+#numSelect label:nth-child(n+2):nth-child(-n+5), #movieCheckbox, #durationSelect{
     display: none;
 }
 #run {
