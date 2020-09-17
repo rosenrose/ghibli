@@ -25,7 +25,6 @@ td {
     width: 25%;
 }
 
-
 #numSelect label:nth-child(n+2):nth-child(-n+5), #movieCheckbox, #durationSelect{
     display: none;
 }
@@ -48,7 +47,7 @@ td {
     width: 90%;
     margin: auto;
 }
-#sliderSelect, #slider, #slider_manual {
+#sliderSelect, #slider, #slider_control {
     width: 100%;
 }
 #slider input[type='range'] {
@@ -56,7 +55,7 @@ td {
 }
 #slider_input {
     display: inline-block;
-    width: 95%;
+    width: 94%;
     margin: auto;
 }
 #gotoInput[type='number'] {
@@ -66,7 +65,7 @@ td {
     border-radius: 3em;
     font-size: 1.5em;
 }
-#forward {
+#next, #forward {
     float: right;
 }
 

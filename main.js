@@ -190,7 +190,7 @@ slider.addEventListener("change", event => {
     else {
         let cut = event.target.value;
         sliderSelect.querySelector("#gotoInput").value = parseInt(cut);
-        document.querySelector("#sliderSelect img").src = `${cloud}/${allList[movie].name}/${cut.padStart(5,"0")}.jpg`
+        document.querySelector("#sliderSelect img").src = `${cloud}/${allList[movie].name}/${cut.padStart(5,"0")}.jpg`;
     }
 });
 sliderSelect.querySelector("button#prev").addEventListener("click", () => {
