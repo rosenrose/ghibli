@@ -189,7 +189,7 @@ slider.addEventListener("change", event => {
     }
     else {
         let cut = event.target.value;
-        sliderSelect.querySelector("#gotoInput").value = parseInt(cut);
+        sliderSelect.querySelector("#goto").value = parseInt(cut);
         document.querySelector("#sliderSelect img").src = `${cloud}/${allList[movie].name}/${cut.padStart(5,"0")}.jpg`;
     }
 });
@@ -201,8 +201,8 @@ sliderSelect.querySelector("button#next").addEventListener("click", () => {
     slider.stepUp();
     slider.dispatchEvent(new InputEvent("change"));
 });
-sliderSelect.querySelector("button#goto").addEventListener("click", () => {
-    let cut = sliderSelect.querySelector("#gotoInput").value;
+sliderSelect.querySelector("#goto").addEventListener("input", event => {
+    let cut = event.target.value;
     if (cut) {
         slider.value = Math.abs(parseInt(cut));
         slider.dispatchEvent(new InputEvent("change"));

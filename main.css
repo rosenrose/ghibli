@@ -58,7 +58,7 @@ td {
     width: 94%;
     margin: auto;
 }
-#gotoInput[type='number'] {
+#goto {
     width: 4em;
 }
 #slider button, #forward, #backward {
