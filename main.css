@@ -101,7 +101,7 @@ td {
         font-size: 2.5em;
     }
     #columnSelect {
-        display: none;
+        display: none !important;
     }
     #select,#pick {
         float: none;
