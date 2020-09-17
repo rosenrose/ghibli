@@ -8,16 +8,17 @@
     <link rel='stylesheet' type='text/css' media='screen' href='main.css' title="myCSS">
 </head>
 <body>
-    <h1 class="center color-white">지브리 랜덤짤</h1>
+    <h1 class="center color-white">지브리 짤 생성기</h1>
     <div id="select">
         <div id="formatSelect">
             <span class="bold">형식: </span>
-            <label class="color-white"><input type="radio" name="format" value="jpg" checked>짤</label>
-            <label class="color-white"><input type="radio" name="format" value="webp">움짤(WebP)</label>
+            <label class="color-white"><input type="radio" name="format" value="jpg">랜덤짤</label>
+            <label class="color-white"><input type="radio" name="format" value="webp">랜덤움짤(WebP)</label>
+            <label class="color-white"><input type="radio" name="format" value="slider">장면 선택</label>
         </div>
         <div id="movieSelect">
             <span class="bold">작품: </span>
-            <label class="color-white"><input type="radio" name="movie" value="list" checked>목록</label>
+            <label class="color-white"><input type="radio" name="movie" value="list">목록</label>
             <label class="color-white"><input type="radio" name="movie" value="checkbox">직접 선택</label><br>
             <select id="movieList">
                 <option value="ghibli">----- 지브리 작품 모두 -----</option>
@@ -42,18 +43,18 @@
         </div>
         <div id="numSelect">
             <span class="bold">개수: </span>
-            <label class="color-white"><input type="radio" name="count" value="1">1개</label>
+            <label class="color-white"><input type="radio" name="count" value="1" lastcheck-webp>1개</label>
             <label class="color-white"><input type="radio" name="count" value="2">2개</label>
             <label class="color-white"><input type="radio" name="count" value="3">3개</label>
             <label class="color-white"><input type="radio" name="count" value="4">4개</label>
-            <label class="color-white"><input type="radio" name="count" value="6" checked>6개</label>
+            <label class="color-white"><input type="radio" name="count" value="6" lastcheck-jpg>6개</label>
             <label class="color-white"><input type="radio" name="count" value="12">12개</label>
             <label class="color-white"><input type="radio" name="count" value="24">24개</label>
             <label class="color-white"><input type="radio" name="count" value="36">36개</label>
         </div>
         <div id="durationSelect">
             <span class="bold">길이: </span>
-            <label class="color-white"><input type="radio" name="duration" value="18" checked>1.5초</label>
+            <label class="color-white"><input type="radio" name="duration" value="18">1.5초</label>
             <label class="color-white"><input type="radio" name="duration" value="36">3초</label>
             <label class="color-white"><input type="radio" name="duration" value="60">5초</label>
             <label class="color-white"><input type="radio" name="duration" value="72">7초</label>
@@ -64,7 +65,25 @@
             <label class="color-white"><input type="radio" name="column" value="3">3개씩 보기</label>
         </div>
     </div>
-    <div id="pick" class="center"><button type="button" id="run" disabled>로딩...</button></div>
+    <div id="pick"><button type="button" id="run">뽑기</button></div>
+    <div id="sliderSelect">
+        <img>
+        <div id="slider">
+            <button type="button" id="prev">-1</button>
+            <input type="range" min="1" value="1">
+            <button type="button" id="next">+1</button>
+        </div>
+        <div id="slider_manual">
+            <button type="button" id="backward">◀</button>
+            <div id="slider_input" class="center">
+                <button type="button" id="down_1000">←1000</button>
+                <input type="number" min="1" id="gotoInput">
+                <button type="button" id="goto">이동</button>
+                <button type="button" id="up_1000">1000→</button>
+            </div>
+            <button type="button" id="forward">▶</button>
+        </div>
+    </div>
     <div id="result"></div>
     <script type="text/javascript" src="main.js"></script>
 </body>
