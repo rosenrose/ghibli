@@ -1,14 +1,14 @@
-var format = "jpg";
-var movieSelect = "list";
-var movie = "long";
-var userSelect = [];
-var allList = [];
-var duration = 18;
-var count = 6;
-var loadCount = 0;
-var runButton = document.querySelector("#run");
-var cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli";
-// var cloud = "http://kjw4569.iptime.org:8080/ghibli";
+let format = "jpg";
+let movieSelect = "list";
+let movie = "long";
+let userSelect = [];
+let allList = [];
+let duration = 18;
+let count = 6;
+let loadCount = 0;
+let runButton = document.querySelector("#run");
+let cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli"; // "http://kjw4569.iptime.org:8080/ghibli";
+let protocol = /\w+(?=:)/.exec(document.URL)[0];
 
 fetch("list.json").then(response => response.json())
 .then(json => {
@@ -89,12 +89,13 @@ for (let radio of radios) {
             labels[0].style.display = "none";
             labels[1].style.display = "none";
             labels[2].style.display = "none";
-            labels[3].style.display = "inline";
+            labels[3].style.display = "none";
             labels[4].style.display = "inline";
             labels[5].style.display = "inline";
             labels[6].style.display = "inline";
+            labels[7].style.display = "inline";
             duration.style.display = "none";
-            inputs[3].checked = true;
+            inputs[4].checked = true;
             count = 6;
             if (runButton.disabled) {
                 runButton.disabled = false;
@@ -107,20 +108,26 @@ for (let radio of radios) {
             labels[0].style.display = "inline";
             labels[1].style.display = "inline";
             labels[2].style.display = "inline";
-            labels[3].style.display = "none";
+            labels[3].style.display = "inline";
             labels[4].style.display = "none";
             labels[5].style.display = "none";
             labels[6].style.display = "none";
+            labels[7].style.display = "none";
             duration.style.display = "block";
             inputs[0].checked = true;
             count = 1;
-            fetch("https://d2pty0y05env0k.cloudfront.net/webp")
-            .catch(error => {
-                runButton.disabled = true;
-                runButton.textContent = "12:00 AM ~ 08:00 AM 서버중지";
-                rulePC.style["font-size"] = "30px";
-                ruleMobile.style["font-size"] = "20px";
-            });
+            let test = "";
+            fetch(`${protocol}://d2pty0y05env0k.cloudfront.net/webp`,{method:"POST"})
+            .then(response => response.text())
+            .then(response => {test = response;});
+            setTimeout(() => {
+                if (!test) {
+                    runButton.disabled = true;
+                    runButton.textContent = "오전 12:00 ~ 오전 08:00 서버중지";
+                    rulePC.style["font-size"] = "40px";
+                    ruleMobile.style["font-size"] = "20px";
+                }
+            }, 500);
         }
     });
 }
@@ -194,7 +201,7 @@ runButton.addEventListener("click", () => {
         else if (format == "webp") {
             cut = getRandomInt(1, title.cut+1-duration);
             let lastCut = cut + duration - 1;
-            fetch("https://d2pty0y05env0k.cloudfront.net/webp", {
+            fetch(`${protocol}://d2pty0y05env0k.cloudfront.net/webp`, {
                 method: "POST",
                 headers: {"Content-Type": "application/x-www-form-urlencoded"},
                 body: urlEncode({
@@ -205,12 +212,18 @@ runButton.addEventListener("click", () => {
                     duration: duration
                 })
             })
-            .then(response => response.blob())
+            .then(response => {console.log(response); return response.blob();})
             .then(blob => {
                 console.log(blob);
                 image.src = URL.createObjectURL(blob);
+                if (!image.hasAttribute("click-event")) {
+                    image.addEventListener("click", event => {
+                        if (event.target.getAttribute("click-event")) {
+                            saveAs(event.target.src, event.target.getAttribute("click-event"));
+                        }
+                    });
+                }
                 image.setAttribute("click-event", `${titleName}_${cut.toString().padStart(5,"0")}-${lastCut.toString().padStart(5,"0")}.webp`);
-                image.addEventListener("click", imgSave);
             });
         }
         
@@ -284,11 +297,10 @@ function clear(items, start) {
 }
 
 function clearEvents(items) {
-    for (let i=0; i<3; i++) {
+    for (let i=0; i<4; i++) {
         let img = items[i].querySelector("img");
         if (img.hasAttribute("click-event")) {
-            img.removeAttribute("click-event");
-            img.removeEventListener("click", imgSave);
+            img.setAttribute("click-event", "")
         }
     }
 }

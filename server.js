@@ -13,87 +13,89 @@ var app = http.createServer((req, res) => {
     .on("data", (data) => {
         body += data;
     })
-    let allowOrigin = ["https://rosenrose.github.io", "http://kjw4569.iptime.org:8080"];
-    let origin = req.headers.origin;
-    if (allowOrigin.includes(origin)) {
-        res.setHeader("Access-Control-Allow-Origin", origin);
-    }
+    res.setHeader("Access-Control-Allow-Origin", "*");
     
     let [url, parameters] = req.url.split("?");
     if (url == "/webp") {
-        res.setHeader("Content-Type", "application/octet-stream");
         return req.on("end", () => {
             res.on("error", (err) => {
                 console.log("response error");
                 console.error(err);
             });
             res.statusCode = 200;
-            
-            let ip = req.socket.remoteAddress;
-            let params = urlParse(body);
-            let date = new Date(parseInt(params["time"]));
-            let log = `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} - ${params["title"]} ${params["duration"]} - ${ip}`
-            if(debug) console.log(log);
-            exec(`echo "${log}" >> log.txt`, ()=>{});
 
-            let dir = `${params["time"]}/${params["num"]}`;
-            // let dir = `d/${params["num"]}`;
-            makeDirs(dir)
-            .then(dir => {
-                return imagesDownload(dir, params);
-            }).then(() => {
-                return ffmpeg(dir);
-            }).catch(err => {
-                if(debug) console.error(err);
-            }).then(webp => {
-                return new Promise(resolve => {
-                    fs.readFile(webp, (err, data) => {
-                        if (err) console.error(err);
-                        else {
-                            resolve(data);
-                            if(debug) console.log(`read file ${webp} finish`);
-                        };
-                    });
-                })
-            }).then(data => {
-                return new Promise((resolve,reject) => {
-                    if(req.socket.destroyed) reject();
-                    else {
-                        res.end(data, () => {
-                            resolve(dir);
-                            if(debug) console.log(`send file ${dir}/webp.webp finish`);
+            if (body == "") {
+                res.setHeader("Content-Type", "text/plain; charset=utf-8");
+                res.end("test");
+            }
+            else {
+                res.setHeader("Content-Type", "application/octet-stream");
+                let ip = req.socket.remoteAddress;
+                let params = urlParse(body);
+                let date = new Date(parseInt(params["time"]));
+                let log = `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} - ${params["title"]} ${params["duration"]} - ${ip}`
+                if(debug) console.log(log);
+                exec(`echo "${log}" >> log.txt`, ()=>{});
+    
+                let dir = `${params["time"]}/${params["num"]}`;
+                // let dir = `d/${params["num"]}`;
+                makeDirs(dir)
+                .then(dir => {
+                    return imagesDownload(dir, params);
+                }).then(() => {
+                    return ffmpeg(dir);
+                }).catch(err => {
+                    if(debug) console.error(err);
+                }).then(webp => {
+                    return new Promise(resolve => {
+                        fs.readFile(webp, (err, data) => {
+                            if (err) console.error(err);
+                            else {
+                                resolve(data);
+                                if(debug) console.log(`read file ${webp} finish`);
+                            };
                         });
-                    }
-                })
-            }).catch(() => {
-                if(debug) console.log("connection destroyed");
-            }).then(() => {
-                return new Promise(resolve => {
-                    exec(`rm -rf ${dir}`, () => {
-                        resolve(`${params["time"]}`);
-                        if(debug) console.log(`remove Dir ${dir} finish`);
-                    });
-                })
-            }).then(value => {
-                return new Promise(resolve => {
-                    fs.readdir(value, (err, files) => {
-                        if (err) console.error(err);
+                    })
+                }).then(data => {
+                    return new Promise((resolve,reject) => {
+                        if(req.socket.destroyed) reject();
                         else {
-                            resolve(files.length);
-                            if(debug) console.log(`read Dir ${value} finish`);
+                            res.end(data, () => {
+                                resolve(dir);
+                                if(debug) console.log(`send file ${dir}/webp.webp finish`);
+                            });
                         }
-                    });
-                })
-            }).then(length => {
-                return new Promise(resolve => {
-                    if (length == 0) {
-                        fs.rmdir(`${params["time"]}`, () => {
-                            resolve();
-                            if(debug) console.log(`remove Dir ${params["time"]} finish`);
+                    })
+                }).catch(() => {
+                    if(debug) console.log("connection destroyed");
+                }).then(() => {
+                    return new Promise(resolve => {
+                        exec(`rm -rf ${dir}`, () => {
+                            resolve(`${params["time"]}`);
+                            if(debug) console.log(`remove Dir ${dir} finish`);
                         });
-                    }
-                })
-            });
+                    })
+                }).then(value => {
+                    return new Promise(resolve => {
+                        fs.readdir(value, (err, files) => {
+                            if (err) console.error(err);
+                            else {
+                                resolve(files.length);
+                                if(debug) console.log(`read Dir ${value} finish`);
+                            }
+                        });
+                    })
+                }).then(length => {
+                    return new Promise(resolve => {
+                        if (length == 0) {
+                            fs.rmdir(`${params["time"]}`, () => {
+                                resolve();
+                                if(debug) console.log(`remove Dir ${params["time"]} finish`);
+                            });
+                        }
+                    })
+                });
+            }
         });
     }
     else if (url == "/delete") {
@@ -116,12 +118,11 @@ var app = http.createServer((req, res) => {
     else {
         res.statusCode = 200;
         res.setHeader("Content-Type", "text/plain; charset=utf-8");
-        // console.log(res.getHeaders());
         return req.on("end", () => {
             fs.readdir(`..${url}`, (err, files) => {
                 if(err) console.error(err);
                 else {
-                    res.write(origin+"\n");
+                    res.write(req.headers.origin+"\n");
                     res.write(parameters+"\n");
                     res.end(files.join("\n"));
                 }
