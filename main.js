@@ -117,9 +117,8 @@ for (let radio of radios) {
             inputs[0].checked = true;
             count = 1;
             let test = "";
-            fetch(`${protocol}://d2pty0y05env0k.cloudfront.net/webp`,{method:"POST"})
-            .then(response => response.text())
-            .then(response => {test = response;});
+            fetch(`${protocol}://d2pty0y05env0k.cloudfront.net/`,{method:"POST"})
+            .then(response => response.text()).then(response => {test = response;});
             setTimeout(() => {
                 if (!test) {
                     runButton.disabled = true;

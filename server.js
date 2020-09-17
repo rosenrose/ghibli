@@ -23,79 +23,73 @@ var app = http.createServer((req, res) => {
                 console.error(err);
             });
             res.statusCode = 200;
+            res.setHeader("Content-Type", "application/octet-stream");
 
-            if (body == "") {
-                res.setHeader("Content-Type", "text/plain; charset=utf-8");
-                res.end("test");
-            }
-            else {
-                res.setHeader("Content-Type", "application/octet-stream");
-                let ip = req.socket.remoteAddress;
-                let params = urlParse(body);
-                let date = new Date(parseInt(params["time"]));
-                let log = `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} - ${params["title"]} ${params["duration"]} - ${ip}`
-                if(debug) console.log(log);
-                exec(`echo "${log}" >> log.txt`, ()=>{});
-    
-                let dir = `${params["time"]}/${params["num"]}`;
-                // let dir = `d/${params["num"]}`;
-                makeDirs(dir)
-                .then(dir => {
-                    return imagesDownload(dir, params);
-                }).then(() => {
-                    return ffmpeg(dir);
-                }).catch(err => {
-                    if(debug) console.error(err);
-                }).then(webp => {
-                    return new Promise(resolve => {
-                        fs.readFile(webp, (err, data) => {
-                            if (err) console.error(err);
-                            else {
-                                resolve(data);
-                                if(debug) console.log(`read file ${webp} finish`);
-                            };
-                        });
-                    })
-                }).then(data => {
-                    return new Promise((resolve,reject) => {
-                        if(req.socket.destroyed) reject();
+            let ip = req.socket.remoteAddress;
+            let params = urlParse(body);
+            let date = new Date(parseInt(params["time"]));
+            let log = `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} - ${params["title"]} ${params["duration"]} - ${ip}`
+            if(debug) console.log(log);
+            exec(`echo "${log}" >> log.txt`, ()=>{});
+
+            let dir = `${params["time"]}/${params["num"]}`;
+            // let dir = `d/${params["num"]}`;
+            makeDirs(dir)
+            .then(dir => {
+                return imagesDownload(dir, params);
+            }).then(() => {
+                return ffmpeg(dir);
+            }).catch(err => {
+                if(debug) console.error(err);
+            }).then(webp => {
+                return new Promise(resolve => {
+                    fs.readFile(webp, (err, data) => {
+                        if (err) console.error(err);
                         else {
-                            res.end(data, () => {
-                                resolve(dir);
-                                if(debug) console.log(`send file ${dir}/webp.webp finish`);
-                            });
-                        }
-                    })
-                }).catch(() => {
-                    if(debug) console.log("connection destroyed");
-                }).then(() => {
-                    return new Promise(resolve => {
-                        exec(`rm -rf ${dir}`, () => {
-                            resolve(`${params["time"]}`);
-                            if(debug) console.log(`remove Dir ${dir} finish`);
+                            resolve(data);
+                            if(debug) console.log(`read file ${webp} finish`);
+                        };
+                    });
+                })
+            }).then(data => {
+                return new Promise((resolve,reject) => {
+                    if(req.socket.destroyed) reject();
+                    else {
+                        res.end(data, () => {
+                            resolve(dir);
+                            if(debug) console.log(`send file ${dir}/webp.webp finish`);
                         });
-                    })
-                }).then(value => {
-                    return new Promise(resolve => {
-                        fs.readdir(value, (err, files) => {
-                            if (err) console.error(err);
-                            else {
-                                resolve(files.length);
-                                if(debug) console.log(`read Dir ${value} finish`);
-                            }
-                        });
-                    })
-                }).then(length => {
-                    return new Promise(resolve => {
-                        if (length == 0) {
-                            fs.rmdir(`${params["time"]}`, () => {
-                                resolve();
-                                if(debug) console.log(`remove Dir ${params["time"]} finish`);
-                            });
+                    }
+                })
+            }).catch(() => {
+                if(debug) console.log("connection destroyed");
+            }).then(() => {
+                return new Promise(resolve => {
+                    exec(`rm -rf ${dir}`, () => {
+                        resolve(`${params["time"]}`);
+                        if(debug) console.log(`remove Dir ${dir} finish`);
+                    });
+                })
+            }).then(value => {
+                return new Promise(resolve => {
+                    fs.readdir(value, (err, files) => {
+                        if (err) console.error(err);
+                        else {
+                            resolve(files.length);
+                            if(debug) console.log(`read Dir ${value} finish`);
                         }
-                    })
-                });
-            }
+                    });
+                })
+            }).then(length => {
+                return new Promise(resolve => {
+                    if (length == 0) {
+                        fs.rmdir(`${params["time"]}`, () => {
+                            resolve();
+                            if(debug) console.log(`remove Dir ${params["time"]} finish`);
+                        });
+                    }
+                })
+            });
         });
     }
     else if (url == "/delete") {
