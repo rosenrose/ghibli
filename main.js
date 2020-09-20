@@ -1,7 +1,5 @@
-let format, movieSelect, count, duration;
-let movie = "long";
-let userSelect = [];
-let allList = [];
+let format, movieSelect, movie, count, duration;
+let userSelect = [], allList = [];
 let loadCount = 0;
 let runButton = document.querySelector("#run");
 let cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli"; // "http://kjw4569.iptime.org:8080/ghibli";
@@ -24,13 +22,13 @@ fetch("list.json").then(response => response.json())
             option.value = sum+i;
             option.text = name;
             if (category == "long") {
-                movieList.insertBefore(option,document.querySelector("option[value='game']"));
+                movieList.insertBefore(option, document.querySelector("option[value='game']"));
             }
             else if (category == "game") {
-                movieList.insertBefore(option,document.querySelector("option[value='short']"));
+                movieList.insertBefore(option, document.querySelector("option[value='short']"));
             }
             else if (category == "short") {
-                movieList.insertBefore(option,document.querySelector("option[value='etc']"));
+                movieList.insertBefore(option, document.querySelector("option[value='etc']"));
             }
             else if (category == "etc") {
                 movieList.appendChild(option);
@@ -59,7 +57,7 @@ fetch("list.json").then(response => response.json())
 });
 
 let result = document.querySelector("#result");
-for (i=0; i<36; i++) {
+for (let i=0; i<36; i++) {
     let item = document.createElement("div");
     item.className = "item";
     let img = document.createElement("img");
@@ -73,27 +71,22 @@ for (i=0; i<36; i++) {
     result.appendChild(item);
 }
 
-let radios = document.querySelectorAll("#formatSelect input");
-for (let radio of radios) {
+for (let radio of document.querySelectorAll("#formatSelect input")) {
     radio.addEventListener("change", event => {
         format = event.target.value;
         let movieSelect = document.querySelectorAll("#movieSelect label");
         let numSelect = document.querySelector("#numSelect");
-        let numLabels = Array.from(numSelect.querySelectorAll("label"));
-        let durationSelect = document.querySelector("#durationSelect");
-        let columnSelect = document.querySelector("#columnSelect");
-        let sliderSelect = document.querySelector("#sliderSelect");
+        let numLabels = [...numSelect.querySelectorAll("label")];
         let rulePC = getCSSRule("myCSS", "#run");
         let ruleMobile = getCSSRule("myCSS", "#run", "(max-width: 768px)");
 
-        setDisplay(format == "jpg", numLabels.slice(4), "inline");
-        setDisplay(format == "webp", numLabels.slice(0, 4), "inline");
-        setDisplay(format == "webp", durationSelect, "block");
-        setDisplay(format == "slider", sliderSelect, "block");
-        setDisplay(format != "slider", movieSelect[1], "inline");
-        setDisplay(format != "slider", [numSelect, columnSelect, runButton, result], "block");
+        setDisplay(format == "jpg", "inline", ...numLabels.slice(4));
+        setDisplay(format == "webp", "inline", ...numLabels.slice(0, 4));
+        setDisplay(format == "webp", "block", document.querySelector("#durationSelect"));
+        setDisplay(format == "slider", "block", document.querySelector("#sliderSelect"));
+        setDisplay(format != "slider", "inline", movieSelect[1]);
+        setDisplay(format != "slider", "block", numSelect, document.querySelector("#columnSelect"), runButton, result);
         if (format == "jpg") {
-            numSelect.querySelector(`input[lastcheck-${format}]`).click();
             if (runButton.disabled) {
                 toggleRunButton();
                 rulePC.style["font-size"] = "3.5em";
@@ -101,9 +94,8 @@ for (let radio of radios) {
             }
         }
         else if (format == "webp") {
-            numSelect.querySelector(`input[lastcheck-${format}]`).click();
             let test = "";
-            fetch(`${protocol}://d2pty0y05env0k.cloudfront.net/`,{method:"POST"})
+            fetch(`${protocol}://d2pty0y05env0k.cloudfront.net/`, {method:"POST"})
             .then(response => response.text()).then(response => {test = response;});
             setTimeout(() => {
                 if (!test) {
@@ -120,18 +112,11 @@ for (let radio of radios) {
     });
 }
 
-radios = document.querySelectorAll("#movieSelect input[type='radio']");
-for (let radio of radios) {
+for (let radio of document.querySelectorAll("#movieSelect input[type='radio']")) {
     radio.addEventListener("change", event => {
         movieSelect = event.target.value;
-        if (movieSelect == "list") {
-            document.querySelector("#movieList").style.display = "inline";
-            document.querySelector("#movieCheckbox").style.display = "none";
-        }
-        else if (movieSelect == "checkbox") {
-            document.querySelector("#movieList").style.display = "none";
-            document.querySelector("#movieCheckbox").style.display = "inline";
-        }
+        setDisplay(movieSelect == "list", "inline", document.querySelector("#movieList"));
+        setDisplay(movieSelect == "checkbox", "inline", document.querySelector("#movieCheckbox"));
     });
 }
 
@@ -147,26 +132,19 @@ document.querySelector("#movieList").addEventListener("change", event => {
     }
 });
 
-radios = document.querySelectorAll("#numSelect input");
-for (let radio of radios) {
+for (let radio of document.querySelectorAll("#numSelect input")) {
     radio.addEventListener("change", event => {
         count = parseInt(event.target.value);
-        for (let radio of document.querySelectorAll("#numSelect input")) {
-            if (radio == event.target) radio.setAttribute(`lastcheck-${format}`, "");
-            else radio.removeAttribute(`lastcheck-${format}`);
-        }
     });
 }
 
-radios = document.querySelectorAll("#durationSelect input");
-for (let radio of radios) {
+for (let radio of document.querySelectorAll("#durationSelect input")) {
     radio.addEventListener("change", event => {
         duration = parseInt(event.target.value);
     });
 }
 
-radios = document.querySelectorAll("#columnSelect input");
-for (let radio of radios) {
+for (let radio of document.querySelectorAll("#columnSelect input")) {
     radio.addEventListener("change", event => {
         column = parseInt(event.target.value);
         let rule = getCSSRule("myCSS", ".item");
@@ -190,7 +168,7 @@ slider.addEventListener("change", event => {
     else {
         let cut = event.target.value;
         sliderSelect.querySelector("#goto").value = parseInt(cut);
-        document.querySelector("#sliderSelect img").src = `${cloud}/${allList[movie].name}/${cut.padStart(5,"0")}.jpg`;
+        sliderImage.src = `${cloud}/${allList[movie].name}/${cut.padStart(5,"0")}.jpg`;
     }
 });
 sliderSelect.querySelector("button#prev").addEventListener("click", () => {
@@ -246,21 +224,6 @@ backwardBtn.addEventListener("click", event => {
     }
 });
 
-function slideShow() {
-    if (forwardBtn.textContent == "⏸️") {
-        setTimeout(() => {
-            slider.stepUp(frame);
-            slider.dispatchEvent(new InputEvent("change"));
-        }, interval);
-    }
-    else if (backwardBtn.textContent == "⏸️") {
-        setTimeout(() => {
-            slider.stepDown(frame);
-            slider.dispatchEvent(new InputEvent("change"));
-        }, interval);
-    }
-}
-
 runButton.addEventListener("click", () => {
     toggleRunButton();
     let items = result.querySelectorAll(".item");
@@ -299,7 +262,7 @@ runButton.addEventListener("click", () => {
                 image.src = URL.createObjectURL(blob);
                 if (!image.hasAttribute("click-event")) {
                     image.addEventListener("click", event => {
-                        if (event.target.getAttribute("click-event")) {
+                        if (event.target.hasAttribute("click-event")) {
                             saveAs(event.target.src, event.target.getAttribute("click-event"));
                         }
                     });
@@ -318,13 +281,15 @@ runButton.addEventListener("click", () => {
     }
 });
 
+document.querySelectorAll("#numSelect input")[0].click();
+document.querySelectorAll("#numSelect input")[4].click();
 document.querySelector("#formatSelect input").click();
 document.querySelector("#movieSelect input").click();
-document.querySelectorAll("#numSelect input")[4].click();
+document.querySelector("#movieList").value = "long";
+document.querySelector("#movieList").dispatchEvent(new InputEvent("change"));
 document.querySelector("#durationSelect input").click();
 
-function setDisplay(condition, element, display) {
-    if (!Array.isArray(element)) element = [element];
+function setDisplay(condition, display, ...element) {
     for (let elem of element) {
         if (condition) {
             elem.style.display = display;
@@ -369,6 +334,21 @@ function loadFinished() {
     }
 }
 
+function slideShow() {
+    if (forwardBtn.textContent == "⏸️") {
+        setTimeout(() => {
+            slider.stepUp(frame);
+            slider.dispatchEvent(new InputEvent("change"));
+        }, interval);
+    }
+    else if (backwardBtn.textContent == "⏸️") {
+        setTimeout(() => {
+            slider.stepDown(frame);
+            slider.dispatchEvent(new InputEvent("change"));
+        }, interval);
+    }
+}
+
 function urlEncode(obj) {
     return Object.entries(obj).map(([key,val]) => `${key}=${encodeURIComponent(val)}`).join("&");
 }
@@ -395,7 +375,7 @@ function clearEvents(items) {
     for (let i=0; i<4; i++) {
         let img = items[i].querySelector("img");
         if (img.hasAttribute("click-event")) {
-            img.setAttribute("click-event", "")
+            img.removeAttribute("click-event");
         }
     }
 }
@@ -405,10 +385,10 @@ function getRandomInt(minInclude, maxExclude) {
 }
 
 function getCSSRule(id, query, condition) {
-    let sheet = Array.from(document.styleSheets).find(sheet => sheet.title == id || sheet.href == id);
-    let rules = Array.from(sheet.cssRules);
+    let sheet = [...document.styleSheets].find(sheet => sheet.title == id || sheet.href == id);
+    let rules = [...sheet.cssRules];
     if (condition) {
-        rules = Array.from(rules.find(rule => rule.conditionText == condition).cssRules);
+        rules = [...rules.find(rule => rule.conditionText == condition).cssRules];
     }
     return rules.find(rule => rule.selectorText == query);
 }
