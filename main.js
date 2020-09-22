@@ -260,14 +260,15 @@ runButton.addEventListener("click", () => {
             .then(blob => {
                 console.log(blob);
                 image.src = URL.createObjectURL(blob);
-                if (!image.hasAttribute("click-event")) {
+                if (!image.hasAttribute("name")) {
                     image.addEventListener("click", event => {
-                        if (event.target.hasAttribute("click-event")) {
-                            saveAs(event.target.src, event.target.getAttribute("click-event"));
+                        let name = event.target.getAttribute("name");
+                        if (name) {
+                            saveAs(event.target.src, name);
                         }
                     });
                 }
-                image.setAttribute("click-event", `${titleName}_${cut.toString().padStart(5,"0")}-${lastCut.toString().padStart(5,"0")}.webp`);
+                image.setAttribute("name", `${titleName}_${cut.toString().padStart(5,"0")}-${lastCut.toString().padStart(5,"0")}.webp`);
             });
         }
         
@@ -374,8 +375,8 @@ function clear(items, start) {
 function clearEvents(items) {
     for (let i=0; i<4; i++) {
         let img = items[i].querySelector("img");
-        if (img.hasAttribute("click-event")) {
-            img.removeAttribute("click-event");
+        if (img.hasAttribute("name")) {
+            img.setAttribute("name", "");
         }
     }
 }
