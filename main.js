@@ -77,16 +77,18 @@ for (let radio of document.querySelectorAll("#formatSelect input")) {
         let movieSelect = document.querySelectorAll("#movieSelect label");
         let numSelect = document.querySelector("#numSelect");
         let numLabels = [...numSelect.querySelectorAll("label")];
+        let numRadios = numLabels.map(label => label.querySelector("input"));
         let rulePC = getCSSRule("myCSS", "#run");
         let ruleMobile = getCSSRule("myCSS", "#run", "(max-width: 768px)");
 
         setDisplay(format == "jpg", "inline", ...numLabels.slice(4));
-        setDisplay(format == "webp", "inline", ...numLabels.slice(0, 4));
+        setDisplay(format == "webp", "inline", ...numLabels.slice(0,4));
         setDisplay(format == "webp", "block", document.querySelector("#durationSelect"));
         setDisplay(format == "slider", "block", document.querySelector("#sliderSelect"));
         setDisplay(format != "slider", "inline", movieSelect[1]);
         setDisplay(format != "slider", "block", numSelect, document.querySelector("#columnSelect"), runButton, result);
         if (format == "jpg") {
+            numRadios.slice(4).find(radio => radio.checked).dispatchEvent(new InputEvent("change"));
             if (runButton.disabled) {
                 toggleRunButton();
                 rulePC.style["font-size"] = "3.5em";
@@ -94,6 +96,7 @@ for (let radio of document.querySelectorAll("#formatSelect input")) {
             }
         }
         else if (format == "webp") {
+            numRadios.slice(0,4).find(radio => radio.checked).dispatchEvent(new InputEvent("change"));
             let test = "";
             fetch(`${protocol}://d2pty0y05env0k.cloudfront.net/`, {method:"POST"})
             .then(response => response.text()).then(response => {test = response;});
