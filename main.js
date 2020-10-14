@@ -218,24 +218,24 @@ const interval = 1000;
 forwardBtn.addEventListener("click", event => {
     let status = event.target.textContent;
     if (status == "▶") {
-        if (backwardBtn.textContent == "⏸️") backwardBtn.textContent = "◀";
-        event.target.textContent = "⏸️";
+        if (backwardBtn.textContent == "II") backwardBtn.textContent = "◀";
+        event.target.textContent = "II";
         slider.stepUp(frame);
         slider.dispatchEvent(new InputEvent("change"));
     }
-    else if (status == "⏸️") {
+    else if (status == "II") {
         event.target.textContent = "▶";
     }
 });
 backwardBtn.addEventListener("click", event => {
     let status = event.target.textContent;
     if (status == "◀") {
-        if (forwardBtn.textContent == "⏸️") forwardBtn.textContent = "▶";
-        event.target.textContent = "⏸️";
+        if (forwardBtn.textContent == "II") forwardBtn.textContent = "▶";
+        event.target.textContent = "II";
         slider.stepDown(frame);
         slider.dispatchEvent(new InputEvent("change"));
     }
-    else if (status == "⏸️") {
+    else if (status == "II") {
         event.target.textContent = "◀";
     }
 });
@@ -397,13 +397,13 @@ function loadFinished() {
 }
 
 function slideShow() {
-    if (forwardBtn.textContent == "⏸️") {
+    if (forwardBtn.textContent == "II") {
         setTimeout(() => {
             slider.stepUp(frame);
             slider.dispatchEvent(new InputEvent("change"));
         }, interval);
     }
-    else if (backwardBtn.textContent == "⏸️") {
+    else if (backwardBtn.textContent == "II") {
         setTimeout(() => {
             slider.stepDown(frame);
             slider.dispatchEvent(new InputEvent("change"));
