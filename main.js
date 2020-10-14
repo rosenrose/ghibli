@@ -83,7 +83,7 @@ for (let radio of document.querySelectorAll("#formatSelect input")) {
 
         setDisplay(format == "jpg", "inline", ...numLabels.slice(4));
         setDisplay(format == "webp", "inline", ...numLabels.slice(0,4));
-        setDisplay(format == "webp", "block", document.querySelector("#durationSelect"));
+        setDisplay(format != "jpg", "block", document.querySelector("#durationSelect"));
         setDisplay(format == "slider", "block", document.querySelector("#sliderSelect"));
         setDisplay(format != "slider", "inline", movieSelect[1]);
         setDisplay(format != "slider", "block", numSelect, document.querySelector("#columnSelect"), runButton, result);
@@ -111,6 +111,16 @@ for (let radio of document.querySelectorAll("#formatSelect input")) {
         }
         else if (format == "slider") {
             movieSelect[0].click();
+            let test = "";
+            fetch(`${protocol}://d2pty0y05env0k.cloudfront.net/`, {method:"POST"})
+            .then(response => response.text()).then(response => {test = response;});
+            setTimeout(() => {
+                if (!test) {
+                    let webp = document.querySelector("#run_webp");
+                    webp.disabled = true;
+                    webp.textContent = "오전 12:00 ~ 오전 08:00 서버중지";
+                }
+            }, 500);
         }
     });
 }
@@ -132,6 +142,9 @@ document.querySelector("#movieList").addEventListener("change", event => {
         range.dispatchEvent(new InputEvent("change"));
         document.querySelector("button#forward").textContent = "▶";
         document.querySelector("button#backward").textContent = "◀";
+        let webp = document.querySelector("#slider_webp img");
+        webp.src = "";
+        webp.removeAttribute("name");
     }
 });
 
@@ -224,6 +237,47 @@ backwardBtn.addEventListener("click", event => {
     }
     else if (status == "⏸️") {
         event.target.textContent = "◀";
+    }
+});
+
+let webp = document.querySelector("#slider_webp img");
+webp.addEventListener("click", event => {
+    let name = event.target.getAttribute("name");
+    if (name) {
+        saveAs(event.target.src, name);
+    }
+});
+
+let rub_webp = document.querySelector("#run_webp");
+rub_webp.addEventListener("click", () => {
+    if (isNaN(movie)) {
+        alert("작품 하나를 선택해주세요.");
+    }
+    else {
+        run_webp.textContent = "로딩...";
+        run_webp.disabled = true;
+        cut = parseInt(slider.value);
+        let lastCut = cut + duration - 1;
+        let title = allList[movie];
+        let titleName = title.name.slice(3,title.name.indexOf("(")).trim()
+        fetch(`${protocol}://d2pty0y05env0k.cloudfront.net/webp`, {
+            method: "POST",
+            headers: {"Content-Type": "application/x-www-form-urlencoded"},
+            body: urlEncode({
+                time: Date.now(),
+                num: 0,
+                title: title.name,
+                cut: cut,
+                duration: duration
+            })
+        })
+        .then(response => response.blob())
+        .then(blob => {
+            run_webp.textContent = "움짤";
+            run_webp.disabled = false;
+            webp.src = URL.createObjectURL(blob);
+            webp.setAttribute("name", `${titleName}_${cut.toString().padStart(5,"0")}-${lastCut.toString().padStart(5,"0")}.webp`);
+        });
     }
 });
 
