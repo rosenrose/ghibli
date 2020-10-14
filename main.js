@@ -258,6 +258,10 @@ rub_webp.addEventListener("click", () => {
         run_webp.disabled = true;
         cut = parseInt(slider.value);
         let lastCut = cut + duration - 1;
+        let max = parseInt(slider.max);
+        if (lastCut > max) {
+            lastCut = max;
+        }
         let title = allList[movie];
         let titleName = title.name.slice(3,title.name.indexOf("(")).trim()
         fetch(`${protocol}://d2pty0y05env0k.cloudfront.net/webp`, {
@@ -268,7 +272,7 @@ rub_webp.addEventListener("click", () => {
                 num: 0,
                 title: title.name,
                 cut: cut,
-                duration: duration
+                duration: lastCut - cut + 1
             })
         })
         .then(response => response.blob())
