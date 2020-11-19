@@ -40,7 +40,7 @@ fetch("list.json").then(response => response.json())
             input.type = "checkbox";
             input.value = sum+i;
             input.addEventListener("change", event => {
-                if (event.target.checked == true) {
+                if (event.target.checked) {
                     userSelect.push(event.target.value);
                 }
                 else {
@@ -352,14 +352,9 @@ document.querySelector("#movieList").dispatchEvent(new InputEvent("change"));
 document.querySelector("#durationSelect input").click();
 
 function setDisplay(condition, display, ...element) {
-    for (let elem of element) {
-        if (condition) {
-            elem.style.display = display;
-        }
-        else {
-            elem.style.display = "none";
-        }
-    }
+    element.forEach(elem => {
+        elem.style.display = (condition)? display : "none";
+    });
 }
 
 function getRandomMovie() {
