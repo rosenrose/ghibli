@@ -1,9 +1,8 @@
-let format, movieSelect, movie, count, duration;
-let userSelect = [], allList = [];
-let loadCount = 0;
-let runButton = document.querySelector("#run");
-let cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli"; // "http://kjw4569.iptime.org:8080/ghibli";
-let protocol = /\w+(?=:)/.exec(document.URL)[0];
+var format, movieSelect, movie, count, duration;
+var userSelect = [], allList = [], promises = [];
+var runButton = document.querySelector("#run");
+var cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli"; // "http://kjw4569.iptime.org:8080/ghibli";
+var protocol = /\w+(?=:)/.exec(document.URL)[0];
 
 fetch("list.json").then(response => response.json())
 .then(json => {
@@ -62,7 +61,6 @@ for (let i=0; i<36; i++) {
     item.className = "item";
     let img = document.createElement("img");
     img.src = "";
-    img.addEventListener("load", loadFinished);
     let title = document.createElement("p");
     title.className = "shadow-white bold";
     title.textContent = "";
@@ -332,6 +330,7 @@ runButton.addEventListener("click", () => {
                 image.setAttribute("name", `${titleName}_${cut.toString().padStart(5,"0")}-${lastCut.toString().padStart(5,"0")}.webp`);
             });
         }
+        promises.push(new Promise(resolve => {image.onload = resolve;}));
         
         if ((movieSelect=="list" && (movie=="ghibli"||(isNaN(movie) && list[movie].length>1))) ||
             (movieSelect=="checkbox" && userSelect.length!=1)) {
@@ -341,6 +340,10 @@ runButton.addEventListener("click", () => {
             p.textContent = "";
         }
     }
+    Promise.all(promises).then(() => {
+        toggleRunButton();
+        promises = [];
+    })
 });
 
 document.querySelectorAll("#numSelect input")[0].click();
@@ -381,14 +384,6 @@ function getRandomMovie() {
         title = allList[rand];
     }
     return title;
-}
-
-function loadFinished() {
-    loadCount++;
-    if (loadCount == count) {
-        loadCount = 0;
-        toggleRunButton();
-    }
 }
 
 function slideShow() {
