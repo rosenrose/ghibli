@@ -330,15 +330,18 @@ runButton.addEventListener("click", () => {
                 image.setAttribute("name", `${titleName}_${cut.toString().padStart(5,"0")}-${lastCut.toString().padStart(5,"0")}.webp`);
             });
         }
-        promises.push(new Promise(resolve => {image.onload = resolve;}));
-        
-        if ((movieSelect=="list" && (movie=="ghibli"||(isNaN(movie) && list[movie].length>1))) ||
-            (movieSelect=="checkbox" && userSelect.length!=1)) {
-            p.textContent = titleName;
-        }
-        else {
-            p.textContent = "";
-        }
+        promises.push(new Promise(resolve => {
+            image.onload = function() {
+                if ((movieSelect=="list" && (movie=="ghibli"||(isNaN(movie) && list[movie].length>1))) ||
+                    (movieSelect=="checkbox" && userSelect.length!=1)) {
+                    p.textContent = titleName;
+                }
+                else {
+                    p.textContent = "";
+                }
+                resolve();
+            }
+        }));
     }
     Promise.all(promises).then(() => {
         toggleRunButton();
