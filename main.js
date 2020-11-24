@@ -60,7 +60,6 @@ for (let i=0; i<36; i++) {
     let item = document.createElement("div");
     item.className = "item";
     let img = document.createElement("img");
-    img.src = "";
     let title = document.createElement("p");
     title.className = "shadow-white bold";
     title.textContent = "";
@@ -421,7 +420,7 @@ function toggleRunButton() {
 
 function clear(items, start) {
     for (let i=start; i<items.length; i++) {
-        items[i].querySelector("img").src = "";
+        items[i].querySelector("img").removeAttribute("src");
         items[i].querySelector("p").textContent = "";
     }
 }
