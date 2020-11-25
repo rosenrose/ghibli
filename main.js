@@ -55,18 +55,7 @@ fetch("list.json").then(response => response.json())
     }
 });
 
-let result = document.querySelector("#result");
-for (let i=0; i<36; i++) {
-    let item = document.createElement("div");
-    item.className = "item";
-    let img = document.createElement("img");
-    let title = document.createElement("p");
-    title.className = "shadow-white bold";
-    title.textContent = "";
-    item.appendChild(img);
-    item.appendChild(title);
-    result.appendChild(item);
-}
+var result = document.querySelector("#result");
 
 for (let radio of document.querySelectorAll("#formatSelect input")) {
     radio.addEventListener("change", event => {
@@ -79,6 +68,7 @@ for (let radio of document.querySelectorAll("#formatSelect input")) {
         let ruleMobile = getCSSRule("myCSS", "#run", "(max-width: 768px)");
 
         setDisplay(format == "jpg", "inline", ...numLabels.slice(4));
+        setDisplay(format == "jpg", "block", document.querySelector("#share"));
         setDisplay(format == "webp", "inline", ...numLabels.slice(0,4));
         setDisplay(format != "jpg", "block", document.querySelector("#durationSelect"));
         setDisplay(format == "slider", "block", document.querySelector("#sliderSelect"));
@@ -284,9 +274,8 @@ rub_webp.addEventListener("click", () => {
 
 runButton.addEventListener("click", () => {
     toggleRunButton();
+    clear();
     let items = result.querySelectorAll(".item");
-    clear(items, count);
-    clearEvents(items);
     
     let time = Date.now();
     for (let i=0; i<count; i++) {
@@ -347,6 +336,23 @@ runButton.addEventListener("click", () => {
         promises = [];
     })
 });
+
+document.querySelector("#sourceBtn").addEventListener("click", () => {
+    let img = [...document.querySelectorAll("#result img[src]")].map(i => {
+        let p1 = document.createElement("p");
+        p1.appendChild(i.cloneNode());
+        let p2 = i.nextElementSibling.cloneNode(true);
+        p2.removeAttribute("class");
+        return p1.outerHTML + "\n" + p2.outerHTML;
+    }).join("\n<p>&nbsp;</p>\n");
+    let textarea = document.querySelector("#source");
+    textarea.value = img;
+    textarea.select();
+    document.execCommand("copy");
+    if (textarea.value) {
+        alert("복사되었습니다.");
+    }
+})
 
 document.querySelectorAll("#numSelect input")[0].click();
 document.querySelectorAll("#numSelect input")[4].click();
@@ -418,19 +424,22 @@ function toggleRunButton() {
     }
 }
 
-function clear(items, start) {
-    for (let i=start; i<items.length; i++) {
-        items[i].querySelector("img").removeAttribute("src");
-        items[i].querySelector("p").textContent = "";
+function clear() {
+    while (result.hasChildNodes()) {
+        result.removeChild(result.firstChild);
     }
-}
+    document.querySelector("#source").value = "";
 
-function clearEvents(items) {
-    for (let i=0; i<4; i++) {
-        let img = items[i].querySelector("img");
-        if (img.hasAttribute("name")) {
-            img.setAttribute("name", "");
-        }
+    for (let i=0; i<count; i++) {
+        let item = document.createElement("div");    
+        item.className = "item";
+        let img = document.createElement("img");
+        let title = document.createElement("p");
+        title.className = "shadow-white bold";
+        title.textContent = "";
+        item.appendChild(img);
+        item.appendChild(title);
+        result.appendChild(item);
     }
 }
 

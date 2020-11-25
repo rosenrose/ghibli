@@ -63,6 +63,10 @@ td {
 #slider_webp img {
     width: 50%;
 }
+#source {
+    width: 40%;
+    height: 10vh;
+}
 
 .item {
     display: inline-block;
@@ -110,4 +114,9 @@ td {
     #sliderSelect img {
         width: 100%;
     }
+    #source {
+        width: 80%;
+        height: 15vh;
+    }
+    
 }
