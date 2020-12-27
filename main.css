@@ -24,6 +24,9 @@ div {
 td {
     width: 25%;
 }
+button:not(:disabled) {
+    cursor: pointer;
+}
 
 #run {
     color: rgb(0,147,219);
