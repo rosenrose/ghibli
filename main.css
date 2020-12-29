@@ -27,6 +27,9 @@ td {
 button:not(:disabled) {
     cursor: pointer;
 }
+img[name] {
+    cursor: pointer;
+}
 
 #run {
     color: rgb(0,147,219);
