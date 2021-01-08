@@ -76,11 +76,11 @@ for (let radio of document.querySelectorAll("#formatSelect input")) {
         setDisplay(format != "slider", "block", numSelect, document.querySelector("#columnSelect"), runButton, result);
         if (format == "jpg") {
             numRadios.slice(4).find(radio => radio.checked).dispatchEvent(new InputEvent("change"));
-            if (runButton.disabled) {
-                toggleRunButton();
-                rulePC.style["font-size"] = "3.5em";
-                ruleMobile.style["font-size"] = "2.5em";
-            }
+            // if (runButton.disabled) {
+            //     toggleRunButton();
+            //     rulePC.style["font-size"] = "3.5em";
+            //     ruleMobile.style["font-size"] = "2.5em";
+            // }
         }
         else if (format == "webp") {
             numRadios.slice(0,4).find(radio => radio.checked).dispatchEvent(new InputEvent("change"));
@@ -122,17 +122,17 @@ for (let radio of document.querySelectorAll("#movieSelect input[type='radio']"))
 
 document.querySelector("#movieList").addEventListener("change", event => {
     movie = event.target.value;
-    if (!isNaN(movie)) {
-        let range = document.querySelector("#sliderSelect input[type='range']");
-        range.max = allList[movie].cut;
-        range.value = "1";
-        range.dispatchEvent(new InputEvent("change"));
-        document.querySelector("button#forward").textContent = "▶";
-        document.querySelector("button#backward").textContent = "◀";
-        let webp = document.querySelector("#slider_webp img");
-        webp.src = "";
-        webp.removeAttribute("name");
-    }
+    // if (!isNaN(movie)) {
+    //     let range = document.querySelector("#sliderSelect input[type='range']");
+    //     range.max = allList[movie].cut;
+    //     range.value = "1";
+    //     range.dispatchEvent(new InputEvent("change"));
+    //     document.querySelector("button#forward").textContent = "▶";
+    //     document.querySelector("button#backward").textContent = "◀";
+    //     let webp = document.querySelector("#slider_webp img");
+    //     webp.src = "";
+    //     webp.removeAttribute("name");
+    // }
 });
 
 for (let radio of document.querySelectorAll("#numSelect input")) {
