@@ -255,11 +255,11 @@ rub_webp.addEventListener("click", () => {
             method: "POST",
             headers: {"Content-Type": "application/x-www-form-urlencoded"},
             body: urlEncode({
-                time: Date.now(),
-                num: 0,
-                title: title.name,
-                cut: cut,
-                duration: lastCut - cut + 1
+                "time": Date.now(),
+                "num": 0,
+                "title": title.name,
+                "cut": cut,
+                "duration": lastCut - cut + 1
             })
         })
         .then(response => response.blob())
@@ -296,16 +296,18 @@ runButton.addEventListener("click", () => {
                 method: "POST",
                 headers: {"Content-Type": "application/x-www-form-urlencoded"},
                 body: urlEncode({
-                    time: time,
-                    num: i+1,
-                    title: title.name,
-                    cut: cut,
-                    duration: duration
+                    "time": time,
+                    "num": i+1,
+                    "title": title.name,
+                    "cut": cut,
+                    "duration": duration
                 })
             })
-            .then(response => response.blob())
+            .then(response => {
+                size = parseInt(response.headers.get("Content-Length"));
+                return response.blob();
+            })
             .then(blob => {
-                console.log(blob);
                 image.src = URL.createObjectURL(blob);
                 if (!image.hasAttribute("name")) {
                     image.addEventListener("click", event => {
@@ -322,6 +324,15 @@ runButton.addEventListener("click", () => {
             image.onload = function() {
                 if ((movieSelect=="list" && (movie=="ghibli"||(isNaN(movie) && list[movie].length>1))) ||
                     (movieSelect=="checkbox" && userSelect.length!=1)) {
+                    if (format == "webp") {
+                        if (size/1024 > 1000) {
+                            size /= 1024;
+                            titleName += ` (${(size/1024).toFixed(1)}MB)`
+                        }
+                        else {
+                            titleName += ` (${(size/1024).toFixed(1)}KB)`
+                        }
+                    }
                     p.textContent = titleName;
                 }
                 else {

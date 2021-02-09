@@ -22,8 +22,6 @@ var app = http.createServer((req, res) => {
                 console.log("response error");
                 console.error(err);
             });
-            res.statusCode = 200;
-            res.setHeader("Content-Type", "application/octet-stream");
 
             let ip = req.socket.remoteAddress;
             let params = urlParse(body);
@@ -46,6 +44,8 @@ var app = http.createServer((req, res) => {
                     fs.readFile(webp, (err, data) => {
                         if (err) console.error(err);
                         else {
+                            res.writeHead(200, {"Content-Type": "application/octet-stream", "Content-Length": fs.statSync(webp).size})
+                            console.log(res.getHeaders())
                             resolve(data);
                             if(debug) console.log(`read file ${webp} finish`);
                         };
@@ -100,8 +100,7 @@ var app = http.createServer((req, res) => {
         });
     }
     else if (url == "/log") {
-        res.statusCode = 200;
-        res.setHeader("Content-Type", "text/plain; charset=utf-8");
+        res.writeHead(200, {"Content-Type": "text/plain; charset=utf-8"});
         return req.on("end", () => {
             fs.readFile("log.txt","utf8", (err,data) => {
                 if (err) res.end(err);
@@ -110,14 +109,13 @@ var app = http.createServer((req, res) => {
         });
     }
     else {
-        res.statusCode = 200;
-        res.setHeader("Content-Type", "text/plain; charset=utf-8");
+        res.writeHead(200, {"Content-Type": "text/plain; charset=utf-8"});
         return req.on("end", () => {
             fs.readdir(`..${url}`, (err, files) => {
                 if(err) console.error(err);
                 else {
-                    res.write(req.headers.origin+"\n");
-                    res.write(parameters+"\n");
+                    res.write(`origin: ${req.headers.origin}\n`);
+                    res.write(`parameters: ${parameters}\n`);
                     res.end(files.join("\n"));
                 }
             });
@@ -168,7 +166,7 @@ function download(uri, filename) {
 
 function ffmpeg(dir) {
     return new Promise((resolve,reject) => {
-        exec(`ffmpeg -framerate 12 -i "${dir}/%5d.jpg" -vf "scale=720:-1" -loop 0 -preset drawing -qscale 90 ${dir}/webp.webp -progress pipe:1`,
+        exec(`ffmpeg -framerate 12 -i "${dir}/%5d.jpg" -vf "scale=720:-1" -loop 0 -preset drawing -qscale 90 "${dir}/webp.webp" -progress pipe:1`,
         (err) => {
             if (err) reject(err);
             else {
