@@ -325,12 +325,13 @@ runButton.addEventListener("click", () => {
                 if ((movieSelect=="list" && (movie=="ghibli"||(isNaN(movie) && list[movie].length>1))) ||
                     (movieSelect=="checkbox" && userSelect.length!=1)) {
                     if (format == "webp") {
-                        if (size/1024 > 1000) {
+                        size /= 1024;
+                        if (size > 1000) {
                             size /= 1024;
-                            titleName += ` (${(size/1024).toFixed(1)}MB)`
+                            titleName += ` (${size.toFixed(1)}MB)`
                         }
                         else {
-                            titleName += ` (${(size/1024).toFixed(1)}KB)`
+                            titleName += ` (${size.toFixed(1)}KB)`
                         }
                     }
                     p.textContent = titleName;
