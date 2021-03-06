@@ -1,8 +1,8 @@
-var format, movieSelect, movie, count, duration;
-var userSelect = [], allList = [], promises = [];
-var runButton = document.querySelector("#run");
-var cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli"; // "http://kjw4569.iptime.org:8080/ghibli";
-var protocol = /\w+(?=:)/.exec(document.URL)[0];
+let format, movieSelect, movie, count, duration;
+userSelect = [], allList = [], promises = [];
+runButton = document.querySelector("#run");
+cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli"; // "http://kjw4569.iptime.org:8080/ghibli";
+protocol = /\w+(?=:)/.exec(document.URL)[0];
 
 fetch("list.json").then(response => response.json())
 .then(json => {
@@ -55,7 +55,7 @@ fetch("list.json").then(response => response.json())
     }
 });
 
-var result = document.querySelector("#result");
+result = document.querySelector("#result");
 
 for (let radio of document.querySelectorAll("#formatSelect input")) {
     radio.addEventListener("change", event => {
@@ -90,7 +90,7 @@ for (let radio of document.querySelectorAll("#formatSelect input")) {
             setTimeout(() => {
                 if (!test) {
                     runButton.disabled = true;
-                    runButton.textContent = "오전 12:00 ~ 오전 08:00 서버중지";
+                    runButton.textContent = "오전 12:00 ~ 오전 08:00 움짤서버 중지";
                     rulePC.style["font-size"] = "3em";
                     ruleMobile.style["font-size"] = "2em";
                 }
@@ -105,7 +105,7 @@ for (let radio of document.querySelectorAll("#formatSelect input")) {
                 if (!test) {
                     let webp = document.querySelector("#run_webp");
                     webp.disabled = true;
-                    webp.textContent = "오전 12:00 ~ 오전 08:00 서버중지";
+                    webp.textContent = "오전 12:00 ~ 오전 08:00 움짤서버 중지";
                 }
             }, 500);
         }
