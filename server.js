@@ -94,7 +94,7 @@ var app = http.createServer((req, res) => {
     }
     else if (url == "/delete") {
         return req.on("end", () => {
-            exec("find . ! -name server.js ! -name log.txt -exec rm -rf {} \\;", () => {
+            exec("find . ! -name server.js ! -name log.txt ! -name server.py ! -name templates -exec rm -rf {} \\;", () => {
                 res.end("");
             });
         });

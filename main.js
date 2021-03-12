@@ -90,7 +90,7 @@ for (let radio of document.querySelectorAll("#formatSelect input")) {
             setTimeout(() => {
                 if (!test) {
                     runButton.disabled = true;
-                    runButton.textContent = "오전 12:00 ~ 오전 08:00 움짤서버 중지";
+                    runButton.textContent = "오전 02:00 ~ 오전 08:00 움짤서버 중지";
                     rulePC.style["font-size"] = "3em";
                     ruleMobile.style["font-size"] = "2em";
                 }
@@ -105,7 +105,7 @@ for (let radio of document.querySelectorAll("#formatSelect input")) {
                 if (!test) {
                     let webp = document.querySelector("#run_webp");
                     webp.disabled = true;
-                    webp.textContent = "오전 12:00 ~ 오전 08:00 움짤서버 중지";
+                    webp.textContent = "오전 02:00 ~ 오전 08:00 움짤서버 중지";
                 }
             }, 500);
         }
