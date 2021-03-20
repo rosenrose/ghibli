@@ -131,7 +131,7 @@ document.querySelector("#movieList").addEventListener("change", event => {
         document.querySelector("button#backward").textContent = "◀";
         let webp = document.querySelector("#slider_webp img");
         webp.src = "";
-        webp.removeAttribute("name");
+        webp.removeAttribute("data-name");
     }
 });
 
@@ -229,7 +229,7 @@ backwardBtn.addEventListener("click", event => {
 
 let webp = document.querySelector("#slider_webp img");
 webp.addEventListener("click", event => {
-    let name = event.target.getAttribute("name");
+    let name = event.target.getAttribute("data-name");
     if (name) {
         saveAs(event.target.src, name);
     }
@@ -267,7 +267,7 @@ rub_webp.addEventListener("click", () => {
             run_webp.textContent = "움짤";
             run_webp.disabled = false;
             webp.src = URL.createObjectURL(blob);
-            webp.setAttribute("name", `${titleName}_${cut.toString().padStart(5,"0")}-${lastCut.toString().padStart(5,"0")}.webp`);
+            webp.setAttribute("data-name", `${titleName}_${cut.toString().padStart(5,"0")}-${lastCut.toString().padStart(5,"0")}.webp`);
         });
     }
 });
@@ -304,20 +304,21 @@ runButton.addEventListener("click", () => {
                 })
             })
             .then(response => {
-                size = parseInt(response.headers.get("Content-Length"));
+                // size = parseInt(response.headers.get("Content-Length"));
                 return response.blob();
             })
             .then(blob => {
                 image.src = URL.createObjectURL(blob);
-                if (!image.hasAttribute("name")) {
+                if (!image.hasAttribute("data-name")) {
                     image.addEventListener("click", event => {
-                        let name = event.target.getAttribute("name");
+                        let name = event.target.getAttribute("data-name");
                         if (name) {
                             saveAs(event.target.src, name);
                         }
                     });
                 }
-                image.setAttribute("name", `${titleName}_${cut.toString().padStart(5,"0")}-${lastCut.toString().padStart(5,"0")}.webp`);
+                image.setAttribute("data-name", `${titleName}_${cut.toString().padStart(5,"0")}-${lastCut.toString().padStart(5,"0")}.webp`);
+                image.setAttribute("data-size", blob.size);
             });
         }
         promises.push(new Promise(resolve => {
@@ -325,6 +326,7 @@ runButton.addEventListener("click", () => {
                 if ((movieSelect=="list" && (movie=="ghibli"||(isNaN(movie) && list[movie].length>1))) ||
                     (movieSelect=="checkbox" && userSelect.length!=1)) {
                     if (format == "webp") {
+                        let size = parseInt(image.getAttribute("data-size"));
                         size /= 1024;
                         if (size > 1000) {
                             size /= 1024;
