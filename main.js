@@ -354,7 +354,9 @@ runButton.addEventListener("click", () => {
 document.querySelector("#sourceBtn").addEventListener("click", () => {
     let img = [...document.querySelectorAll("#result img[src]")].map(i => {
         let p1 = document.createElement("p");
-        p1.appendChild(i.cloneNode());
+        let temp = i.cloneNode();
+        temp.style.maxWidth = "100%";
+        p1.appendChild(temp);
         let p2 = i.nextElementSibling.cloneNode(true);
         p2.removeAttribute("class");
         return p1.outerHTML + "\n" + p2.outerHTML;
