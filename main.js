@@ -442,7 +442,7 @@ function toggleRunButton() {
 
 function clear() {
     while (result.hasChildNodes()) {
-        result.removeChild(result.firstChild);
+        result.firstChild.remove();
     }
     document.querySelector("#source").value = "";
 
@@ -479,7 +479,7 @@ function saveAs(uri, filename) {
         link.download = filename;
         link.href = uri;
         link.click();
-        document.body.removeChild(link); // remove the link when done
+        link.remove(); // remove the link when done
     } else {
         location.replace(uri);
     }
