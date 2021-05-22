@@ -27,7 +27,7 @@ td {
 button:not(:disabled) {
     cursor: pointer;
 }
-img[name] {
+img[data-name] {
     cursor: pointer;
 }
 
