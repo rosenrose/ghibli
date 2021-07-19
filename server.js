@@ -44,7 +44,7 @@ var app = http.createServer((req, res) => {
                     fs.readFile(webp, (err, data) => {
                         if (err) console.error(err);
                         else {
-                            res.writeHead(200, {"Content-Type": "application/octet-stream"})
+                            res.writeHead(200, {"Content-Type": "image/webp"})
                             console.log(res.getHeaders())
                             resolve(data);
                             if(debug) console.log(`read file ${webp} finish`);

@@ -2,7 +2,7 @@ let format, movieSelect, movie, count, duration;
 userSelect = [], allList = [], promises = [];
 runButton = document.querySelector("#run");
 cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli"; // "http://kjw4569.iptime.org:8080/ghibli";
-protocol = /\w+(?=:)/.exec(document.URL)[0];
+protocol = /.+(?=:)/.exec(document.URL)[0];
 
 fetch("list.json").then(response => response.json())
 .then(json => {
@@ -48,7 +48,7 @@ fetch("list.json").then(response => response.json())
                 }
             });
             label.appendChild(input);
-            label.appendChild(document.createTextNode(name.slice(0,name.indexOf("("))));
+            label.appendChild(document.createTextNode(name.slice(0,name.indexOf("(")-1)));
             movieCheckbox[sum+i].appendChild(label);
         }
         sum += i;
@@ -305,9 +305,11 @@ runButton.addEventListener("click", () => {
             })
             .then(response => {
                 // size = parseInt(response.headers.get("Content-Length"));
-                return response.blob();
+                // return response.blob();
+                return response.arrayBuffer();
             })
-            .then(blob => {
+            .then(buffer => {
+                let blob = new Blob([buffer], { type: "image/webp" });
                 image.src = URL.createObjectURL(blob);
                 if (!image.hasAttribute("data-name")) {
                     image.addEventListener("click", event => {
@@ -330,10 +332,10 @@ runButton.addEventListener("click", () => {
                         size /= 1024;
                         if (size > 1000) {
                             size /= 1024;
-                            titleName += ` (${size.toFixed(1)}MB)`
+                            titleName += ` (${size.toFixed(1)}MiB)`
                         }
                         else {
-                            titleName += ` (${size.toFixed(1)}KB)`
+                            titleName += ` (${size.toFixed(1)}KiB)`
                         }
                     }
                     p.textContent = titleName;
@@ -442,6 +444,7 @@ function toggleRunButton() {
 
 function clear() {
     while (result.hasChildNodes()) {
+
         result.firstChild.remove();
     }
     document.querySelector("#source").value = "";
