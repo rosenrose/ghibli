@@ -30,7 +30,7 @@ fetch("list.json").then(response => response.json())
                 movieList.insertBefore(option, document.querySelector("option[value='etc']"));
             }
             else if (category == "etc") {
-                movieList.appendChild(option);
+                movieList.append(option);
             }
 
             let label = document.createElement("label");
@@ -47,9 +47,8 @@ fetch("list.json").then(response => response.json())
                     if (idx > -1) userSelect.splice(idx, 1);
                 }
             });
-            label.appendChild(input);
-            label.appendChild(document.createTextNode(name.slice(0,name.indexOf("(")-1)));
-            movieCheckbox[sum+i].appendChild(label);
+            label.append(input, name.slice(0,name.indexOf("(")-1));
+            movieCheckbox[sum+i].append(label);
         }
         sum += i;
     }
@@ -67,13 +66,13 @@ for (let radio of document.querySelectorAll("#formatSelect input")) {
         let rulePC = getCSSRule("myCSS", "#run");
         let ruleMobile = getCSSRule("myCSS", "#run", "(max-width: 768px)");
 
-        setDisplay(format == "jpg", "inline", ...numLabels.slice(4));
-        setDisplay(format == "jpg", "block", document.querySelector("#share"));
-        setDisplay(format == "webp", "inline", ...numLabels.slice(0,4));
-        setDisplay(format != "jpg", "block", document.querySelector("#durationSelect"));
-        setDisplay(format == "slider", "block", document.querySelector("#sliderSelect"));
-        setDisplay(format != "slider", "inline", movieSelect[1]);
-        setDisplay(format != "slider", "block", numSelect, document.querySelector("#columnSelect"), runButton, result);
+        toggleDisplay(format == "jpg", "inline", ...numLabels.slice(4));
+        toggleDisplay(format == "jpg", "block", document.querySelector("#share"));
+        toggleDisplay(format == "webp", "inline", ...numLabels.slice(0,4));
+        toggleDisplay(format != "jpg", "block", document.querySelector("#durationSelect"));
+        toggleDisplay(format == "slider", "block", document.querySelector("#sliderSelect"));
+        toggleDisplay(format != "slider", "inline", movieSelect[1]);
+        toggleDisplay(format != "slider", "block", numSelect, document.querySelector("#columnSelect"), runButton, result);
         if (format == "jpg") {
             numRadios.slice(4).find(radio => radio.checked).dispatchEvent(new InputEvent("change"));
             if (runButton.disabled) {
@@ -115,8 +114,8 @@ for (let radio of document.querySelectorAll("#formatSelect input")) {
 for (let radio of document.querySelectorAll("#movieSelect input[type='radio']")) {
     radio.addEventListener("change", event => {
         movieSelect = event.target.value;
-        setDisplay(movieSelect == "list", "inline", document.querySelector("#movieList"));
-        setDisplay(movieSelect == "checkbox", "inline", document.querySelector("#movieCheckbox"));
+        toggleDisplay(movieSelect == "list", "inline", document.querySelector("#movieList"));
+        toggleDisplay(movieSelect == "checkbox", "inline", document.querySelector("#movieCheckbox"));
     });
 }
 
@@ -358,7 +357,7 @@ document.querySelector("#sourceBtn").addEventListener("click", () => {
         let p1 = document.createElement("p");
         let temp = i.cloneNode();
         temp.style.maxWidth = "100%";
-        p1.appendChild(temp);
+        p1.append(temp);
         let p2 = i.nextElementSibling.cloneNode(true);
         p2.removeAttribute("class");
         return p1.outerHTML + "\n" + p2.outerHTML;
@@ -380,7 +379,7 @@ document.querySelector("#movieList").value = "long";
 document.querySelector("#movieList").dispatchEvent(new InputEvent("change"));
 document.querySelector("#durationSelect input").click();
 
-function setDisplay(condition, display, ...element) {
+function toggleDisplay(condition, display, ...element) {
     element.forEach(elem => {
         elem.style.display = (condition)? display : "none";
     });
@@ -444,7 +443,6 @@ function toggleRunButton() {
 
 function clear() {
     while (result.hasChildNodes()) {
-
         result.firstChild.remove();
     }
     document.querySelector("#source").value = "";
@@ -456,9 +454,8 @@ function clear() {
         let title = document.createElement("p");
         title.className = "shadow-white bold";
         title.textContent = "";
-        item.appendChild(img);
-        item.appendChild(title);
-        result.appendChild(item);
+        item.append(img, title);
+        result.append(item);
     }
 }
 
@@ -478,7 +475,7 @@ function getCSSRule(id, query, condition) {
 function saveAs(uri, filename) {
     let link = document.createElement('a');
     if (typeof link.download === 'string') {
-        document.body.appendChild(link); // Firefox requires the link to be in the body
+        document.body.append(link); // Firefox requires the link to be in the body
         link.download = filename;
         link.href = uri;
         link.click();
