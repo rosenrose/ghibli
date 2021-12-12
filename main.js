@@ -16,7 +16,7 @@ fetch("list.json").then(response => response.json())
         for (i=0; i<list[category].length; i++) {
             allList.push(list[category][i]);
             let name = list[category][i].name.slice(3);
-    
+
             let option = document.createElement("option");
             option.value = sum+i;
             option.text = name;
@@ -273,7 +273,7 @@ runButton.addEventListener("click", () => {
     toggleRunButton();
     clear();
     let items = result.querySelectorAll(".item");
-    
+
     let time = Date.now();
     for (let i=0; i<count; i++) {
         let image = items[i].querySelector("img");
@@ -357,7 +357,7 @@ document.querySelector("#sourceBtn").addEventListener("click", () => {
 
         p1.querySelector("img").src = item.querySelector("img").src;
         p2.textContent = item.querySelector("p").textContent;
-        return [...template.querySelectorAll(":scope > *")].map(p => p.outerHTML).join("\n");
+        return [...template.querySelectorAll(":scope > *")].map(p => p.outerHTML).join("\n");   //div로 감싸서 innerHTML을 하면 p 태그들 사이에 공백이 들어감. 따라서 각각의 outerHTML을 합침.
     }).join("\n");
     let textarea = document.querySelector("#source");
     textarea.value = source;

@@ -14,7 +14,7 @@ var app = http.createServer((req, res) => {
         body += data;
     })
     res.setHeader("Access-Control-Allow-Origin", "*");
-    
+
     let [url, parameters] = req.url.split("?");
     if (url == "/webp") {
         return req.on("end", () => {
@@ -175,6 +175,6 @@ function ffmpeg(dir) {
             }
         }).stdout.on("data", data => {
             console.log(data);
-        })            
+        });
     });
 }
