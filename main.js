@@ -33,10 +33,9 @@ fetch("list.json").then(response => response.json())
                 movieList.append(option);
             }
 
-            let label = document.createElement("label");
-            label.className = "color-white";
-            let input = document.createElement("input");
-            input.type = "checkbox";
+            let template = document.querySelector("#movieCheckboxTemplate").content.cloneNode(true);
+            let label = template.firstElementChild;
+            let input = label.querySelector("input");
             input.value = sum+i;
             input.addEventListener("change", event => {
                 if (event.target.checked) {
@@ -47,7 +46,7 @@ fetch("list.json").then(response => response.json())
                     if (idx > -1) userSelect.splice(idx, 1);
                 }
             });
-            label.append(input, name.slice(0,name.indexOf("(")-1));
+            input.nextSibling.textContent = name.slice(0,name.indexOf("(")-1);
             movieCheckbox[sum+i].append(label);
         }
         sum += i;
@@ -353,17 +352,16 @@ runButton.addEventListener("click", () => {
 });
 
 document.querySelector("#sourceBtn").addEventListener("click", () => {
-    let img = [...document.querySelectorAll("#result img[src]")].map(i => {
-        let p1 = document.createElement("p");
-        let temp = i.cloneNode();
-        temp.style.maxWidth = "100%";
-        p1.append(temp);
-        let p2 = i.nextElementSibling.cloneNode(true);
-        p2.removeAttribute("class");
-        return p1.outerHTML + "\n" + p2.outerHTML;
-    }).join("\n<p>&nbsp;</p>\n");
+    let source = [...document.querySelectorAll("div.item")].map(item => {
+        let template = document.querySelector("#shareTemplate").content.cloneNode(true);
+        let [p1, p2, ] = template.querySelectorAll("p");
+
+        p1.querySelector("img").src = item.querySelector("img").src;
+        p2.textContent = item.querySelector("p").textContent;
+        return [...template.querySelectorAll(":scope > *")].map(p => p.outerHTML).join("\n");
+    }).join("\n");
     let textarea = document.querySelector("#source");
-    textarea.value = img;
+    textarea.value = source;
     textarea.select();
     document.execCommand("copy");
     if (textarea.value) {
@@ -448,14 +446,8 @@ function clear() {
     document.querySelector("#source").value = "";
 
     for (let i=0; i<count; i++) {
-        let item = document.createElement("div");    
-        item.className = "item";
-        let img = document.createElement("img");
-        let title = document.createElement("p");
-        title.className = "shadow-white bold";
-        title.textContent = "";
-        item.append(img, title);
-        result.append(item);
+        let template = document.querySelector("#itemTemplate").content.cloneNode(true);
+        result.append(template.firstElementChild);
     }
 }
 
