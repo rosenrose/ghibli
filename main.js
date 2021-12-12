@@ -353,11 +353,12 @@ runButton.addEventListener("click", () => {
 document.querySelector("#sourceBtn").addEventListener("click", () => {
     let source = [...document.querySelectorAll("div.item")].map(item => {
         let template = document.querySelector("#shareTemplate").content.cloneNode(true);
-        let [p1, p2, ] = template.querySelectorAll("p");
 
+        let [p1, p2, ] = template.querySelectorAll("p");
         p1.querySelector("img").src = item.querySelector("img").src;
         p2.textContent = item.querySelector("p").textContent;
-        return [...template.querySelectorAll(":scope > *")].map(p => p.outerHTML).join("\n");   //div로 감싸서 innerHTML을 하면 p 태그들 사이에 공백이 들어감. 따라서 각각의 outerHTML을 합침.
+
+        return template.firstElementChild.innerHTML.trim().replace(/\s+\n\s+/g, "\n");
     }).join("\n");
     let textarea = document.querySelector("#source");
     textarea.value = source;
