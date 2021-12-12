@@ -34,8 +34,7 @@ fetch("list.json").then(response => response.json())
             }
 
             let template = document.querySelector("#movieCheckboxTemplate").content.cloneNode(true);
-            let label = template.firstElementChild;
-            let input = label.querySelector("input");
+            let input = template.querySelector("input");
             input.value = sum+i;
             input.addEventListener("change", event => {
                 if (event.target.checked) {
@@ -47,7 +46,7 @@ fetch("list.json").then(response => response.json())
                 }
             });
             input.nextSibling.textContent = name.slice(0,name.indexOf("(")-1);
-            movieCheckbox[sum+i].append(label);
+            movieCheckbox[sum+i].append(template.firstElementChild);
         }
         sum += i;
     }
