@@ -358,7 +358,7 @@ document.querySelector("#sourceBtn").addEventListener("click", () => {
         p1.querySelector("img").src = item.querySelector("img").src;
         p2.textContent = item.querySelector("p").textContent;
 
-        return template.firstElementChild.innerHTML.trim().replace(/\s+\n\s+/g, "\n");
+        return template.firstElementChild.innerHTML.trim().replace(/\s*\n\s+/g, "\n");
     }).join("\n");
     let textarea = document.querySelector("#source");
     textarea.value = source;
