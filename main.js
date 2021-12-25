@@ -360,12 +360,21 @@ document.querySelector("#sourceBtn").addEventListener("click", () => {
 
         return template.firstElementChild.innerHTML.trim().replace(/\n\s+/g, "\n");
     }).join("\n");
-    let textarea = document.querySelector("#source");
+    textarea = document.querySelector("#source");
     textarea.value = source;
     textarea.select();
-    document.execCommand("copy");
+    selection = document.getSelection();
+
     if (textarea.value) {
-        alert("복사되었습니다.");
+        navigator.permissions.query({name: "clipboard-write"})
+        .then(result => {
+            if (result.state == "granted" || result.state == "prompt") {
+                navigator.clipboard.writeText(selection.toString())
+                .then(() => {
+                    alert("복사되었습니다.");
+                });
+            }
+        });
     }
 })
 
