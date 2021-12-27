@@ -1,8 +1,8 @@
 let format, movieSelect, movie, count, duration;
 userSelect = [], allList = [], promises = [];
 runButton = document.querySelector("#run");
-cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli"; // "http://kjw4569.iptime.org:8080/ghibli";
-protocol = /.+(?=:)/.exec(document.URL)[0];
+cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli";
+protocol = /.+?(?=:)/.exec(document.URL)[0];
 
 fetch("list.json").then(response => response.json())
 .then(json => {
@@ -64,13 +64,12 @@ for (let radio of document.querySelectorAll("#formatSelect input")) {
         let rulePC = getCSSRule("myCSS", "#run");
         let ruleMobile = getCSSRule("myCSS", "#run", "(max-width: 768px)");
 
-        toggleDisplay(format == "jpg", "inline", ...numLabels.slice(4));
-        toggleDisplay(format == "jpg", "block", document.querySelector("#share"));
-        toggleDisplay(format == "webp", "inline", ...numLabels.slice(0,4));
-        toggleDisplay(format != "jpg", "block", document.querySelector("#durationSelect"));
-        toggleDisplay(format == "slider", "block", document.querySelector("#sliderSelect"));
-        toggleDisplay(format != "slider", "inline", movieSelect[1]);
-        toggleDisplay(format != "slider", "block", numSelect, document.querySelector("#columnSelect"), runButton, result);
+        selectAttribute(numLabels, "style", "display: inline;", "display: none;", ...(format == "jpg"? numLabels.slice(4) : numLabels.slice(0,4)));
+        toggleAttribute(format == "jpg", "style", "display: block;", "display: none;", document.querySelector("#share"));
+        toggleAttribute(format != "jpg", "style", "display: block;", "display: none;", document.querySelector("#durationSelect"));
+        toggleAttribute(format == "slider", "style", "display: block;", "display: none;", document.querySelector("#sliderSelect"));
+        toggleAttribute(format != "slider", "style", "display: inline;", "display: none;", movieSelect[1]);
+        toggleAttribute(format != "slider", "style", "display: block;", "display: none;", numSelect, document.querySelector("#columnSelect"), runButton, result);
         if (format == "jpg") {
             numRadios.slice(4).find(radio => radio.checked).dispatchEvent(new InputEvent("change"));
             if (runButton.disabled) {
@@ -112,8 +111,7 @@ for (let radio of document.querySelectorAll("#formatSelect input")) {
 for (let radio of document.querySelectorAll("#movieSelect input[type='radio']")) {
     radio.addEventListener("change", event => {
         movieSelect = event.target.value;
-        toggleDisplay(movieSelect == "list", "inline", document.querySelector("#movieList"));
-        toggleDisplay(movieSelect == "checkbox", "inline", document.querySelector("#movieCheckbox"));
+        selectAttribute(document.querySelectorAll("#movieList, #movieCheckbox"), "style", "display: inline;", "display: none;", document.querySelector(`#${(movieSelect == "list")? "movieList" : "movieCheckbox"}`));
     });
 }
 
@@ -202,7 +200,9 @@ const interval = 1000;
 forwardBtn.addEventListener("click", event => {
     let status = event.target.textContent;
     if (status == "▶") {
-        if (backwardBtn.textContent == "II") backwardBtn.textContent = "◀";
+        if (backwardBtn.textContent == "II") {
+            backwardBtn.textContent = "◀";
+        }
         event.target.textContent = "II";
         slider.stepUp(frame);
         slider.dispatchEvent(new InputEvent("change"));
@@ -214,7 +214,9 @@ forwardBtn.addEventListener("click", event => {
 backwardBtn.addEventListener("click", event => {
     let status = event.target.textContent;
     if (status == "◀") {
-        if (forwardBtn.textContent == "II") forwardBtn.textContent = "▶";
+        if (forwardBtn.textContent == "II") {
+            forwardBtn.textContent = "▶";
+        }
         event.target.textContent = "II";
         slider.stepDown(frame);
         slider.dispatchEvent(new InputEvent("change"));
@@ -386,12 +388,6 @@ document.querySelector("#movieList").value = "long";
 document.querySelector("#movieList").dispatchEvent(new InputEvent("change"));
 document.querySelector("#durationSelect input").click();
 
-function toggleDisplay(condition, display, ...element) {
-    element.forEach(elem => {
-        elem.style.display = (condition)? display : "none";
-    });
-}
-
 function getRandomMovie() {
     if (movieSelect == "list") {
         if (movie == "ghibli") {
@@ -438,14 +434,8 @@ function urlEncode(obj) {
 }
 
 function toggleRunButton() {
-    if (runButton.disabled) {
-        runButton.disabled = false;
-        runButton.textContent = "뽑기";
-    }
-    else {
-        runButton.disabled = true;
-        runButton.textContent = "로딩...";
-    }
+    toggleAttribute(runButton.disabled, "disabled", false, true, runButton);
+    toggleAttribute(runButton.textContent == "뽑기", "textContent", "로딩...", "뽑기", runButton);
 }
 
 function clear() {
@@ -460,19 +450,6 @@ function clear() {
     }
 }
 
-function getRandomInt(minInclude, maxExclude) {
-    return Math.floor(Math.random() * (maxExclude - minInclude)) + minInclude;
-}
-
-function getCSSRule(id, query, condition) {
-    let sheet = [...document.styleSheets].find(sheet => sheet.title == id || sheet.href == id);
-    let rules = [...sheet.cssRules];
-    if (condition) {
-        rules = [...rules.find(rule => rule.conditionText == condition).cssRules];
-    }
-    return rules.find(rule => rule.selectorText == query);
-}
-
 function saveAs(uri, filename) {
     let link = document.createElement('a');
     if (typeof link.download === 'string') {
@@ -484,4 +461,29 @@ function saveAs(uri, filename) {
     } else {
         location.replace(uri);
     }
+}
+
+function toggleAttribute(condition, attribute, trueValue, falseValue, ...element) {
+    element.forEach(elem => {
+        elem[attribute] = (condition)? trueValue : falseValue;
+    });
+}
+
+function selectAttribute(range, attribute, trueValue, falseValue, ...element) {
+    range.forEach(r => {
+        r[attribute] = element.includes(r)? trueValue : falseValue;
+    });
+}
+
+function getRandomInt(minInclude, maxExclude) {
+    return Math.floor(Math.random() * (maxExclude - minInclude)) + minInclude;
+}
+
+function getCSSRule(id, query, condition) {
+    let sheet = [...document.styleSheets].find(sheet => sheet.title == id || sheet.href == id);
+    let rules = [...sheet.cssRules];
+    if (condition) {
+        rules = [...rules.find(rule => rule.conditionText == condition).cssRules];
+    }
+    return rules.find(rule => rule.selectorText == query);
 }
