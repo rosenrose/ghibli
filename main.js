@@ -64,12 +64,12 @@ for (let radio of document.querySelectorAll("#formatSelect input")) {
         let rulePC = getCSSRule("myCSS", "#run");
         let ruleMobile = getCSSRule("myCSS", "#run", "(max-width: 768px)");
 
-        selectAttribute(numLabels, "style", "display: inline;", "display: none;", ...(format == "jpg"? numLabels.slice(4) : numLabels.slice(0,4)));
-        toggleAttribute(format == "jpg", "style", "display: block;", "display: none;", document.querySelector("#share"));
-        toggleAttribute(format != "jpg", "style", "display: block;", "display: none;", document.querySelector("#durationSelect"));
-        toggleAttribute(format == "slider", "style", "display: block;", "display: none;", document.querySelector("#sliderSelect"));
-        toggleAttribute(format != "slider", "style", "display: inline;", "display: none;", movieSelect[1]);
-        toggleAttribute(format != "slider", "style", "display: block;", "display: none;", numSelect, document.querySelector("#columnSelect"), runButton, result);
+        selectAttribute(numLabels, "style.display", "inline", "none", ...(format == "jpg"? numLabels.slice(4) : numLabels.slice(0,4)));
+        toggleAttribute(format == "jpg", "style.display", "block", "none", document.querySelector("#share"));
+        toggleAttribute(format != "jpg", "style.display", "block", "none", document.querySelector("#durationSelect"));
+        toggleAttribute(format == "slider", "style.display", "block", "none", document.querySelector("#sliderSelect"));
+        toggleAttribute(format != "slider", "style.display", "inline", "none", movieSelect[1]);
+        toggleAttribute(format != "slider", "style.display", "block", "none", numSelect, document.querySelector("#columnSelect"), runButton, result);
         if (format == "jpg") {
             numRadios.slice(4).find(radio => radio.checked).dispatchEvent(new InputEvent("change"));
             if (runButton.disabled) {
@@ -111,7 +111,7 @@ for (let radio of document.querySelectorAll("#formatSelect input")) {
 for (let radio of document.querySelectorAll("#movieSelect input[type='radio']")) {
     radio.addEventListener("change", event => {
         movieSelect = event.target.value;
-        selectAttribute(document.querySelectorAll("#movieList, #movieCheckbox"), "style", "display: inline;", "display: none;", document.querySelector(`#${(movieSelect == "list")? "movieList" : "movieCheckbox"}`));
+        selectAttribute(document.querySelectorAll("#movieList, #movieCheckbox"), "style.display", "inline", "none", document.querySelector(`#${(movieSelect == "list")? "movieList" : "movieCheckbox"}`));
     });
 }
 
@@ -464,14 +464,36 @@ function saveAs(uri, filename) {
 }
 
 function toggleAttribute(condition, attribute, trueValue, falseValue, ...element) {
+    if (typeof attribute == "string") {
+        attribute = attribute.split(".");
+    }
     element.forEach(elem => {
-        elem[attribute] = (condition)? trueValue : falseValue;
+        let obj = elem;
+        attribute.forEach((attr, i) => {
+            if (i < attribute.length-1) {
+                obj = obj[attr];
+            }
+            else {
+                obj[attr] = (condition)? trueValue : falseValue;
+            }
+        });
     });
 }
 
 function selectAttribute(range, attribute, trueValue, falseValue, ...element) {
+    if (typeof attribute == "string") {
+        attribute = attribute.split(".");
+    }
     range.forEach(r => {
-        r[attribute] = element.includes(r)? trueValue : falseValue;
+        let obj = r;
+        attribute.forEach((attr, i) => {
+            if (i < attribute.length-1) {
+                obj = obj[attr];
+            }
+            else {
+                obj[attr] = element.includes(r)? trueValue : falseValue;
+            }
+        });
     });
 }
 
