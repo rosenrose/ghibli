@@ -65,7 +65,9 @@ for (let radio of document.querySelectorAll("#formatSelect input")) {
         let rulePC = getCSSRule("myCSS", "#run");
         let ruleMobile = getCSSRule("myCSS", "#run", "(max-width: 768px)");
 
-        selectAttribute(numLabels, "style.display", "inline", "none", ...(format == "jpg"? numLabels.slice(4) : numLabels.slice(0,4)));
+        if (format != "slider") {
+            selectAttribute(`.${format}`, "style.display", "inline", "none", ...numLabels);
+        }
         toggleAttribute(format == "jpg", "style.display", "block", "none", document.querySelector("#share"));
         toggleAttribute(format != "jpg", "style.display", "block", "none", document.querySelector("#durationSelect"));
         toggleAttribute(format == "slider", "style.display", "block", "none", document.querySelector("#sliderSelect"));
@@ -112,7 +114,7 @@ for (let radio of document.querySelectorAll("#formatSelect input")) {
 for (let radio of document.querySelectorAll("#movieSelect input[type='radio']")) {
     radio.addEventListener("change", event => {
         movieSelect = event.target.value;
-        selectAttribute(document.querySelectorAll("#movieList, #movieCheckbox"), "style.display", "inline", "none", document.querySelector(`#${(movieSelect == "list")? "movieList" : "movieCheckbox"}`));
+        selectAttribute(`#${(movieSelect == "list")? "movieList" : "movieCheckbox"}`, "style.display", "inline", "none", ...document.querySelectorAll("#movieList, #movieCheckbox"));
     });
 }
 
@@ -481,18 +483,18 @@ function toggleAttribute(condition, attribute, trueValue, falseValue, ...element
     });
 }
 
-function selectAttribute(range, attribute, trueValue, falseValue, ...element) {
+function selectAttribute(query, attribute, trueValue, falseValue, ...element) {
     if (typeof attribute == "string") {
         attribute = attribute.split(".");
     }
-    range.forEach(r => {
-        let obj = r;
+    element.forEach(elem => {
+        let obj = elem;
         attribute.forEach((attr, i) => {
             if (i < attribute.length-1) {
                 obj = obj[attr];
             }
             else {
-                obj[attr] = element.includes(r)? trueValue : falseValue;
+                obj[attr] = elem.matches(query)? trueValue : falseValue;
             }
         });
     });
