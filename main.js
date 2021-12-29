@@ -20,14 +20,15 @@ fetch("list.json").then(response => response.json())
             let option = document.createElement("option");
             option.value = sum+i;
             option.text = name;
+            movieList.querySelector(`option[value='${category}']`).after();
             if (category == "long") {
-                movieList.insertBefore(option, document.querySelector("option[value='game']"));
+                movieList.querySelector("option[value='game']").before(option);
             }
             else if (category == "game") {
-                movieList.insertBefore(option, document.querySelector("option[value='short']"));
+                movieList.querySelector("option[value='short']").before(option);
             }
             else if (category == "short") {
-                movieList.insertBefore(option, document.querySelector("option[value='etc']"));
+                movieList.querySelector("option[value='etc']").before(option);
             }
             else if (category == "etc") {
                 movieList.append(option);
