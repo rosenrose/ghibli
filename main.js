@@ -20,19 +20,19 @@ fetch("list.json").then(response => response.json())
             let option = document.createElement("option");
             option.value = sum+i;
             option.text = name;
-            movieList.querySelector(`option[value='${category}']`).after();
-            if (category == "long") {
-                movieList.querySelector("option[value='game']").before(option);
-            }
-            else if (category == "game") {
-                movieList.querySelector("option[value='short']").before(option);
-            }
-            else if (category == "short") {
-                movieList.querySelector("option[value='etc']").before(option);
-            }
-            else if (category == "etc") {
-                movieList.append(option);
-            }
+            movieList.querySelector(`option[value='${category}']`).appendTemp(option);
+            // if (category == "long") {
+            //     movieList.querySelector("option[value='game']").before(option);
+            // }
+            // else if (category == "game") {
+            //     movieList.querySelector("option[value='short']").before(option);
+            // }
+            // else if (category == "short") {
+            //     movieList.querySelector("option[value='etc']").before(option);
+            // }
+            // else if (category == "etc") {
+            //     movieList.append(option);
+            // }
 
             let template = document.querySelector("#movieCheckboxTemplate").content.cloneNode(true);
             let input = template.querySelector("input");
@@ -51,6 +51,7 @@ fetch("list.json").then(response => response.json())
         }
         sum += i;
     }
+    appendRestore();
 });
 
 result = document.querySelector("#result");
@@ -511,4 +512,18 @@ function getCSSRule(id, query, condition) {
         rules = [...rules.find(rule => rule.conditionText == condition).cssRules];
     }
     return rules.find(rule => rule.selectorText == query);
+}
+
+HTMLElement.prototype.appendTemp = function(...element) {
+    if (!this.querySelector("temp")) {
+        this.append(document.createElement("temp"));
+    }
+    this.querySelector("temp").append(...element);
+}
+
+function appendRestore() {
+    document.querySelectorAll("temp").forEach(temp => {
+        temp.parentNode.after(...temp.children);
+        temp.remove();
+    });
 }
