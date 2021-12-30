@@ -21,18 +21,6 @@ fetch("list.json").then(response => response.json())
             option.value = sum+i;
             option.text = name;
             movieList.querySelector(`option[value='${category}']`).appendTemp(option);
-            // if (category == "long") {
-            //     movieList.querySelector("option[value='game']").before(option);
-            // }
-            // else if (category == "game") {
-            //     movieList.querySelector("option[value='short']").before(option);
-            // }
-            // else if (category == "short") {
-            //     movieList.querySelector("option[value='etc']").before(option);
-            // }
-            // else if (category == "etc") {
-            //     movieList.append(option);
-            // }
 
             let template = document.querySelector("#movieCheckboxTemplate").content.cloneNode(true);
             let input = template.querySelector("input");
