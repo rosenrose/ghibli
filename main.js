@@ -1,14 +1,21 @@
-let format, movieSelect, movie, count, duration;
-userSelect = [], allList = [], promises = [];
+userSelect = new Set();
+allList = [], promises = [];
+movieList = document.querySelector("#movieList");
+movieCheckbox = document.querySelector("#movieCheckbox");
 runButton = document.querySelector("#run");
 cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli";
-protocol = /.+?(?=:)/.exec(document.URL)[0];
+protocol = /[^:]+(?=:)/.exec(document.URL)[0];
+const serverResponseWait = 800;
+
+document.querySelector("form").addEventListener("submit", event => {
+    event.preventDefault();
+    let formData = new FormData(event.target);
+    console.log([...formData.entries()]);
+});
 
 fetch("list.json").then(response => response.json())
 .then(json => {
     list = json;
-    let movieList = document.querySelector("#movieList");
-    let movieCheckbox = document.querySelectorAll("#movieCheckbox td");
     let sum = 0;
 
     for (let category in list) {
@@ -25,17 +32,16 @@ fetch("list.json").then(response => response.json())
             let template = document.querySelector("#movieCheckboxTemplate").content.cloneNode(true);
             let input = template.querySelector("input");
             input.value = sum+i;
-            input.addEventListener("change", event => {
+            input.addEventListener("click", event => {
                 if (event.target.checked) {
-                    userSelect.push(event.target.value);
+                    userSelect.add(event.target.value);
                 }
                 else {
-                    let idx = userSelect.indexOf(event.target.value);
-                    if (idx > -1) userSelect.splice(idx, 1);
+                    userSelect.delete(event.target.value)
                 }
             });
             input.nextSibling.textContent = name.slice(0,name.indexOf("(")-1);
-            movieCheckbox[sum+i].append(template.firstElementChild);
+            movieCheckbox.querySelectorAll("td")[sum+i].append(template.firstElementChild);
         }
         sum += i;
     }
@@ -45,8 +51,8 @@ fetch("list.json").then(response => response.json())
 result = document.querySelector("#result");
 
 for (let radio of document.querySelectorAll("#formatSelect input")) {
-    radio.addEventListener("change", event => {
-        format = event.target.value;
+    radio.addEventListener("click", event => {
+        format = new FormData(event.target.form).get("format");
         let movieSelect = document.querySelectorAll("#movieSelect label");
         let numSelect = document.querySelector("#numSelect");
         let numLabels = [...numSelect.querySelectorAll("label")];
@@ -60,10 +66,10 @@ for (let radio of document.querySelectorAll("#formatSelect input")) {
         toggleAttribute(format == "jpg", "style.display", "block", "none", document.querySelector("#share"));
         toggleAttribute(format != "jpg", "style.display", "block", "none", document.querySelector("#durationSelect"));
         toggleAttribute(format == "slider", "style.display", "block", "none", document.querySelector("#sliderSelect"));
-        toggleAttribute(format != "slider", "style.display", "inline", "none", movieSelect[1]);
+        toggleAttribute(format == "slider", "style.display", "none", "inline", movieSelect[1]);
         toggleAttribute(format != "slider", "style.display", "block", "none", numSelect, document.querySelector("#columnSelect"), runButton, result);
         if (format == "jpg") {
-            numRadios.slice(4).find(radio => radio.checked).dispatchEvent(new InputEvent("change"));
+            numRadios.slice(4).find(radio => radio.checked).click();
             if (runButton.disabled) {
                 toggleRunButton();
                 rulePC.style["font-size"] = "3.5em";
@@ -71,7 +77,7 @@ for (let radio of document.querySelectorAll("#formatSelect input")) {
             }
         }
         else if (format == "webp") {
-            numRadios.slice(0,4).find(radio => radio.checked).dispatchEvent(new InputEvent("change"));
+            numRadios.slice(0,4).find(radio => radio.checked).click();
             let test = "";
             fetch(`${protocol}://d2pty0y05env0k.cloudfront.net/`, {method:"POST"})
             .then(response => response.text()).then(response => {test = response;});
@@ -82,7 +88,7 @@ for (let radio of document.querySelectorAll("#formatSelect input")) {
                     rulePC.style["font-size"] = "3em";
                     ruleMobile.style["font-size"] = "2em";
                 }
-            }, 500);
+            }, serverResponseWait);
         }
         else if (format == "slider") {
             movieSelect[0].click();
@@ -95,19 +101,19 @@ for (let radio of document.querySelectorAll("#formatSelect input")) {
                     webp.disabled = true;
                     webp.textContent = "오전 12:00 ~ 오전 08:00 움짤서버 중지";
                 }
-            }, 500);
+            }, serverResponseWait);
         }
     });
 }
 
 for (let radio of document.querySelectorAll("#movieSelect input[type='radio']")) {
-    radio.addEventListener("change", event => {
+    radio.addEventListener("click", event => {
         movieSelect = event.target.value;
-        selectAttribute(`#${(movieSelect == "list")? "movieList" : "movieCheckbox"}`, "style.display", "inline", "none", ...document.querySelectorAll("#movieList, #movieCheckbox"));
+        selectAttribute(`#${(movieSelect == "list")? "movieList" : "movieCheckbox"}`, "style.display", "block", "none", movieList, movieCheckbox);
     });
 }
 
-document.querySelector("#movieList").addEventListener("change", event => {
+movieList.addEventListener("change", event => {
     movie = event.target.value;
     if (!isNaN(movie)) {
         let range = document.querySelector("#sliderSelect input[type='range']");
@@ -123,19 +129,19 @@ document.querySelector("#movieList").addEventListener("change", event => {
 });
 
 for (let radio of document.querySelectorAll("#numSelect input")) {
-    radio.addEventListener("change", event => {
+    radio.addEventListener("click", event => {
         count = parseInt(event.target.value);
     });
 }
 
 for (let radio of document.querySelectorAll("#durationSelect input")) {
-    radio.addEventListener("change", event => {
+    radio.addEventListener("click", event => {
         duration = parseInt(event.target.value);
     });
 }
 
 for (let radio of document.querySelectorAll("#columnSelect input")) {
-    radio.addEventListener("change", event => {
+    radio.addEventListener("click", event => {
         column = parseInt(event.target.value);
         let rule = getCSSRule("myCSS", ".item");
         if (column == 2) {
@@ -241,15 +247,16 @@ rub_webp.addEventListener("click", () => {
             lastCut = max;
         }
         let title = allList[movie];
-        let titleName = title.name.slice(3,title.name.indexOf("(")).trim()
+        let titleName = title.name.slice(3,title.name.indexOf("(")).trim();
+        let time = Date.now();
         fetch(`${protocol}://d2pty0y05env0k.cloudfront.net/webp`, {
             method: "POST",
             headers: {"Content-Type": "application/x-www-form-urlencoded"},
             body: urlEncode({
-                "time": Date.now(),
+                time,
                 "num": 0,
                 "title": title.name,
-                "cut": cut,
+                cut,
                 "duration": lastCut - cut + 1
             })
         })
@@ -287,11 +294,11 @@ runButton.addEventListener("click", () => {
                 method: "POST",
                 headers: {"Content-Type": "application/x-www-form-urlencoded"},
                 body: urlEncode({
-                    "time": time,
+                    time,
                     "num": i+1,
                     "title": title.name,
-                    "cut": cut,
-                    "duration": duration
+                    cut,
+                    duration
                 })
             })
             .then(response => {
@@ -317,7 +324,7 @@ runButton.addEventListener("click", () => {
         promises.push(new Promise(resolve => {
             image.onload = function() {
                 if ((movieSelect=="list" && (movie=="ghibli"||(isNaN(movie) && list[movie].length>1))) ||
-                    (movieSelect=="checkbox" && userSelect.length!=1)) {
+                    (movieSelect=="checkbox" && userSelect.size != 1)) {
                     if (format == "webp") {
                         let size = parseInt(image.getAttribute("data-size"));
                         size /= 1024;
@@ -372,13 +379,8 @@ document.querySelector("#sourceBtn").addEventListener("click", () => {
     }
 })
 
-document.querySelectorAll("#numSelect input")[0].click();
-document.querySelectorAll("#numSelect input")[4].click();
-document.querySelector("#formatSelect input").click();
-document.querySelector("#movieSelect input").click();
-document.querySelector("#movieList").value = "long";
-document.querySelector("#movieList").dispatchEvent(new InputEvent("change"));
-document.querySelector("#durationSelect input").click();
+document.querySelectorAll("input[checked]").forEach(input => {input.click();});
+document.querySelector("select").dispatchEvent(new InputEvent("change"));
 
 function getRandomMovie() {
     if (movieSelect == "list") {
@@ -395,8 +397,8 @@ function getRandomMovie() {
         }
     }
     else if (movieSelect == "checkbox") {
-        if (userSelect.length > 0) {
-            rand = userSelect[getRandomInt(0, userSelect.length)];
+        if (userSelect.size) {
+            rand = [...userSelect][getRandomInt(0, userSelect.size)];
         }
         else {
             rand = getRandomInt(0, allList.length);
@@ -431,9 +433,7 @@ function toggleRunButton() {
 }
 
 function clear() {
-    while (result.hasChildNodes()) {
-        result.firstChild.remove();
-    }
+    result.replaceChildren();
     document.querySelector("#source").value = "";
 
     for (let i=0; i<count; i++) {

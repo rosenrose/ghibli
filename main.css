@@ -19,7 +19,7 @@ body {
     background-image: url('ghibli.png');
 }
 div {
-    margin: 0px 0px 5px 0px;
+    margin-bottom: 0.5em;
 }
 td {
     width: 25%;
@@ -30,20 +30,31 @@ button:not(:disabled) {
 img[data-name] {
     cursor: pointer;
 }
+textarea {
+    display: block;
+    margin: auto;
+}
 
 #run {
     color: rgb(0,147,219);
     font-size: 3em;
     border-radius: 0.5em;
 }
-#select,#pick {
+#select {
+    width: 47%;
+}
+#select fieldset {
+    width: fit-content;
+}
+#select, #pick {
     float: left;
 }
-#sliderSelect,#result {
-    clear: left;
+#movieList {
+    display: block;
 }
-#select {
-    width: 46.5%;
+
+#sliderSelect, #result {
+    clear: left;
 }
 #sliderImage {
     width: 90%;
@@ -77,14 +88,15 @@ img[data-name] {
 .item {
     display: inline-block;
     /* border:1px solid rgba(0,0,0,1); */
-    margin: 0 5px;
+    margin: 0.3em;
     width: 48%;
 }
 .item img {
     width: 100%;
 }
 .item p {
-    margin: 0px 0px 20px 0px;
+    margin-top: 0.5em;
+    margin-bottom: 1em;
 }
 
 @media ( max-width: 768px ) {
@@ -108,14 +120,19 @@ img[data-name] {
     #columnSelect {
         display: none !important;
     }
-    #select,#pick {
+    #select, #pick {
         float: none;
     }
     #select {
         width: 100%;
+        padding: 0;
     }
-    #pick button {
-        margin: auto;
+    #select fieldset {
+        margin: 0;
+        padding: 0;
+    }
+    #pick {
+        text-align: center;
     }
     #sliderSelect img {
         width: 100%;
