@@ -131,8 +131,8 @@ textarea {
         margin: 0;
         padding: 0;
     }
-    #pick {
-        text-align: center;
+    #pick button {
+        margin: auto;
     }
     #sliderSelect img {
         width: 100%;
