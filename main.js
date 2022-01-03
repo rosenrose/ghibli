@@ -7,12 +7,6 @@ cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli";
 protocol = /[^:]+(?=:)/.exec(document.URL)[0];
 const serverResponseWait = 800;
 
-document.querySelector("form").addEventListener("submit", event => {
-    event.preventDefault();
-    let formData = new FormData(event.target);
-    console.log([...formData.entries()]);
-});
-
 fetch("list.json").then(response => response.json())
 .then(json => {
     list = json;
@@ -32,7 +26,7 @@ fetch("list.json").then(response => response.json())
             let template = document.querySelector("#movieCheckboxTemplate").content.cloneNode(true);
             let input = template.querySelector("input");
             input.value = sum+i;
-            input.addEventListener("click", event => {
+            input.addEventListener("change", event => {
                 if (event.target.checked) {
                     userSelect.add(event.target.value);
                 }
@@ -52,7 +46,8 @@ result = document.querySelector("#result");
 
 for (let radio of document.querySelectorAll("#formatSelect input")) {
     radio.addEventListener("click", event => {
-        format = new FormData(event.target.form).get("format");
+        // format = new FormData(event.target.form).get("format");
+        format = event.target.value;
         let movieSelect = document.querySelectorAll("#movieSelect label");
         let numSelect = document.querySelector("#numSelect");
         let numLabels = [...numSelect.querySelectorAll("label")];
