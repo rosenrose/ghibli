@@ -98,7 +98,7 @@ document.querySelector("#formatSelect").addEventListener("change", event => {
 document.querySelector("#movieSelect").addEventListener("change", event => {
     if (event.target.type == "radio") {
         movieSelect = event.target.value;
-        selectAttribute(`.${movieSelect}`, "style.display", "block", "none", movieList, movieCheckbox);
+        selectAttribute(`.${movieSelect}`, "style.display", "", "none", movieList, movieCheckbox);
     }
 });
 
