@@ -278,7 +278,7 @@ runButton.addEventListener("click", () => {
                 method: "POST",
                 headers: {"Content-Type": "application/x-www-form-urlencoded"},
                 body: urlEncode({
-                    time,
+                    "time": time + i,
                     "num": i+1,
                     "title": title.name,
                     cut,
