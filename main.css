@@ -39,6 +39,7 @@ textarea {
     color: rgb(0,147,219);
     font-size: 3em;
     border-radius: 0.5em;
+    display: block;
 }
 #select {
     width: 47%;
