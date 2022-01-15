@@ -6,6 +6,8 @@ runButton = document.querySelector("#run");
 result = document.querySelector("#result");
 cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli";
 protocol = /[^:]+(?=:)/.exec(document.URL)[0];
+decoder = new TextDecoder();
+boundary = "\n--boundary--\n";
 const serverResponseWait = 800;
 
 fetch("list.json").then(response => response.json())
@@ -56,7 +58,8 @@ document.querySelector("#formatSelect").addEventListener("change", event => {
     document.querySelector("#durationSelect").hidden = format == "jpg";
     document.querySelector("#share").hidden = format != "jpg";
     document.querySelector("#sliderSelect").hidden = format != "slider";
-    toggleAttribute("hidden", format == "slider", movieSelect[1], countSelect, document.querySelector("#columnSelect"), runButton, result);
+    runButton.style.display = (format == "slider")? "none" : "";
+    toggleAttribute("hidden", format == "slider", movieSelect[1], countSelect, document.querySelector("#columnSelect"), result);
 
     if (format == "jpg") {
         [...document.querySelectorAll("#jpgNum input")].find(radio => radio.checked).dispatchEvent(new InputEvent("change",{bubbles: true}));
@@ -208,9 +211,11 @@ backwardBtn.addEventListener("click", event => {
     }
 });
 
-let webp = document.querySelector("#slider_webp img");
-webp.addEventListener("click", event => {
-    let name = event.target.getAttribute("data-name");
+document.querySelector("#slider_webp").append(document.querySelector("#itemTemplate").content.cloneNode(true));
+let webpItem = document.querySelector("#slider_webp div");
+webpItem.className = "";
+webpItem.addEventListener("click", event => {
+    let name = event.target.dataset.name;
     if (name) {
         saveAs(event.target.src, name);
     }
@@ -231,26 +236,22 @@ rub_webp.addEventListener("click", () => {
             lastCut = max;
         }
         let title = allList[movie];
-        let titleName = title.name.slice(3,title.name.indexOf("(")).trim();
+        let trimName = title.name.slice(3,title.name.indexOf("(")).trim();
         let time = Date.now();
-        fetch(`${protocol}://d2pty0y05env0k.cloudfront.net/webp`, {
-            method: "POST",
-            headers: {"Content-Type": "application/x-www-form-urlencoded"},
-            body: urlEncode({
-                time,
-                "num": 0,
-                "title": title.name,
-                cut,
-                "duration": lastCut - cut + 1
-            })
-        })
-        .then(response => response.blob())
-        .then(blob => {
+
+        getWebp({
+            time,
+            "num": 0,
+            "title": title.name,
+            cut,
+            "duration": lastCut - cut + 1,
+            trimName
+        }, webpItem);
+
+        webpItem.querySelector("img").onload = () => {
             run_webp.textContent = "움짤";
             run_webp.disabled = false;
-            webp.src = URL.createObjectURL(blob);
-            webp.setAttribute("data-name", `${titleName}_${cut.toString().padStart(5,"0")}-${lastCut.toString().padStart(5,"0")}.webp`);
-        });
+        }
     }
 });
 
@@ -264,7 +265,7 @@ runButton.addEventListener("click", () => {
         let image = items[i].querySelector("img");
         let p = items[i].querySelector("p");
         let title = getRandomMovie();
-        let titleName = title.name.slice(3,title.name.indexOf("(")).trim()
+        let trimName = title.name.slice(3,title.name.indexOf("(")).trim()
         let cut;
 
         if (format == "jpg") {
@@ -273,54 +274,24 @@ runButton.addEventListener("click", () => {
         }
         else if (format == "webp") {
             cut = getRandomInt(1, title.cut+1-duration);
-            let lastCut = cut + duration - 1;
-            fetch(`${protocol}://d2pty0y05env0k.cloudfront.net/webp`, {
-                method: "POST",
-                headers: {"Content-Type": "application/x-www-form-urlencoded"},
-                body: urlEncode({
-                    "time": time + i,
-                    "num": i+1,
-                    "title": title.name,
-                    cut,
-                    duration
-                })
-            })
-            .then(response => {
-                // size = parseInt(response.headers.get("Content-Length"));
-                // return response.blob();
-                return response.arrayBuffer();
-            })
-            .then(buffer => {
-                let blob = new Blob([buffer], { type: "image/webp" });
-                image.src = URL.createObjectURL(blob);
-                if (!image.hasAttribute("data-name")) {
-                    image.addEventListener("click", event => {
-                        let name = event.target.getAttribute("data-name");
-                        if (name) {
-                            saveAs(event.target.src, name);
-                        }
-                    });
-                }
-                image.setAttribute("data-name", `${titleName}_${cut.toString().padStart(5,"0")}-${lastCut.toString().padStart(5,"0")}.webp`);
-                image.setAttribute("data-size", blob.size);
-            });
+
+            getWebp({
+                "time": time + i,
+                "num": i+1,
+                "title": title.name,
+                cut,
+                duration,
+                trimName
+            }, items[i]);
         }
         promises.push(new Promise(resolve => {
             image.onload = function() {
                 if ((movieSelect=="list" && (movie=="ghibli"||(isNaN(movie) && list[movie].length>1))) ||
                     (movieSelect=="checkbox" && userSelect.size != 1)) {
                     if (format == "webp") {
-                        let size = parseInt(image.getAttribute("data-size"));
-                        size /= 1024;
-                        if (size > 1000) {
-                            size /= 1024;
-                            titleName += ` (${size.toFixed(1)}MiB)`
-                        }
-                        else {
-                            titleName += ` (${size.toFixed(1)}KiB)`
-                        }
+                        trimName = `${trimName} (${p.textContent})`;
                     }
-                    p.textContent = titleName;
+                    p.textContent = trimName;
                 }
                 else {
                     p.textContent = "";
@@ -364,6 +335,106 @@ document.querySelector("#sourceBtn").addEventListener("click", () => {
 })
 
 document.querySelectorAll("input[checked], select").forEach(input => {input.dispatchEvent(new InputEvent("change", {bubbles: true}));});
+
+function getWebp(params, item) {
+    let img = item.querySelector("img");
+    let p = item.querySelector("p");
+    let bar = item.querySelector("progress");
+    let cut = params.cut;
+    let lastCut = cut + params.duration - 1;
+
+    p.textContent = `0/${params.duration}개 다운로드`;
+    bar.max = duration * 2;
+    bar.value = 0;
+
+    fetch(`${protocol}://d2pty0y05env0k.cloudfront.net/webp`, {
+        method: "POST",
+        headers: {"Content-Type": "application/x-www-form-urlencoded"},
+        body: urlEncode(params)
+    })
+    .then(async (response) => {
+        let reader = response.body.getReader();
+        let chunks = [];
+        let progress, size, current;
+        let count = 0;
+        let isFile = false;
+
+        while (true) {
+            let {value, done} = await reader.read();
+
+            if (done) {
+                break;
+            }
+
+            if (isFile) {
+                chunks = [...chunks, ...value];
+                current = chunks.length / 1024;
+
+                if (size.includes("MB")) {
+                    current /= 1024;
+                    current = `${(current).toFixed(1)}MB`;
+                }
+                else {
+                    current = `${(current).toFixed(1)}KB`;
+                }
+
+                p.textContent = `${size} 중 ${current} 전송`;
+            }
+            else {
+                progress = decoder.decode(value);
+
+                // console.log(progress);
+                progress.split(boundary).filter(p => p.length).forEach(prog => {
+                    if (prog == "download") {
+                        p.textContent = `${++count}/${params.duration}개 다운로드`;
+                        bar.value += 1;
+                    }
+                    else if (prog.startsWith("frame=")) {
+                        let status = prog.split("\n");
+                        p.textContent = [status[0], status[1], status[7], status[10]].join(" ");
+
+                        let frame = parseInt(status[0].slice("frame=".length));
+                        bar.value = (bar.max / 2) + frame;
+                    }
+                    else if (prog.startsWith("Content-Length")) {
+                        size = parseInt(prog.slice(prog.indexOf(" ") + 1));
+                        size /= 1024;
+
+                        if (size > 1000) {
+                            size /= 1024;
+                            size = `${(size).toFixed(1)}MB`;
+                        }
+                        else {
+                            size = `${(size).toFixed(1)}KB`;
+                        }
+
+                        isFile = true;
+                    }
+                    else {
+                        chunks = [...chunks, ...value.slice(progress.lastIndexOf(boundary) + boundary.length)];
+                    }
+                });
+            }
+        }
+        p.textContent = size;
+        bar.hidden = true;
+
+        chunks = new Uint8Array(chunks);
+        blob = new Blob([chunks], {type: "image/webp"});
+        img.src = URL.createObjectURL(blob);
+
+        if (!img.dataset.name) {
+            img.addEventListener("click", event => {
+                let name = event.target.dataset.name;
+                if (name) {
+                    saveAs(event.target.src, name);
+                }
+            });
+        }
+
+        img.dataset.name = `${params.trimName}_${cut.toString().padStart(5,"0")}-${lastCut.toString().padStart(5,"0")}.webp`;
+    });
+}
 
 function getRandomMovie() {
     if (movieSelect == "list") {
@@ -416,6 +487,9 @@ function toggleRunButton() {
 }
 
 function clear() {
+    result.querySelectorAll("img[data-name]").forEach(img => {
+        URL.revokeObjectURL(img.src);
+    });
     result.replaceChildren();
     document.querySelector("#source").value = "";
 

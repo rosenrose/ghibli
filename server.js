@@ -1,10 +1,11 @@
-var http = require("http");
-var fs = require("fs");
-var request = require('request');
-var exec = require('child_process').exec;
-var debug = true;
+let http = require("http");
+let fs = require("fs");
+let request = require('request');
+let exec = require('child_process').exec;
+let debug = true;
+let boundary = "\n--boundary--\n";
 
-var app = http.createServer((req, res) => {
+let app = http.createServer((req, res) => {
     let body = "";
     req.on("error", (err) => {
         console.log("request error");
@@ -34,9 +35,9 @@ var app = http.createServer((req, res) => {
             // let dir = `d/${params["num"]}`;
             makeDirs(dir)
             .then(dir => {
-                return imagesDownload(dir, params);
+                return imagesDownload(dir, params, res);
             }).then(() => {
-                return ffmpeg(dir);
+                return ffmpeg(dir, res);
             }).catch(err => {
                 if(debug) console.error(err);
             }).then(webp => {
@@ -44,13 +45,16 @@ var app = http.createServer((req, res) => {
                     fs.readFile(webp, (err, data) => {
                         if (err) console.error(err);
                         else {
-                            res.writeHead(200, {"Content-Type": "image/webp"})
-                            console.log(res.getHeaders())
+                            // res.writeHead(200, {"Content-Type": "image/webp", "Content-Length": fs.statSync(webp).size});
+                            res.write(`Content-Length: ${fs.statSync(webp).size}${boundary}`);
                             resolve(data);
-                            if(debug) console.log(`read file ${webp} finish`);
+                            if(debug) {
+                                console.log(res.getHeaders());
+                                console.log(`read file ${webp} finish`);
+                            }
                         };
                     });
-                })
+                });
             }).then(data => {
                 return new Promise((resolve,reject) => {
                     if(req.socket.destroyed) reject();
@@ -60,7 +64,7 @@ var app = http.createServer((req, res) => {
                             if(debug) console.log(`send file ${dir}/webp.webp finish`);
                         });
                     }
-                })
+                });
             }).catch(() => {
                 if(debug) console.log("connection destroyed");
             }).then(() => {
@@ -69,7 +73,7 @@ var app = http.createServer((req, res) => {
                         resolve(`${params["time"]}`);
                         if(debug) console.log(`remove Dir ${dir} finish`);
                     });
-                })
+                });
             }).then(value => {
                 return new Promise(resolve => {
                     fs.readdir(value, (err, files) => {
@@ -79,7 +83,7 @@ var app = http.createServer((req, res) => {
                             if(debug) console.log(`read Dir ${value} finish`);
                         }
                     });
-                })
+                });
             }).then(length => {
                 return new Promise(resolve => {
                     if (length == 0) {
@@ -88,7 +92,7 @@ var app = http.createServer((req, res) => {
                             if(debug) console.log(`remove Dir ${params["time"]} finish`);
                         });
                     }
-                })
+                });
             });
         });
     }
@@ -140,7 +144,7 @@ function makeDirs(dir) {
     })
 }
 
-function imagesDownload(dir, params) {
+function imagesDownload(dir, params, res) {
     let promises = [];
     let cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli";
     let cut = parseInt(params["cut"]);
@@ -148,7 +152,7 @@ function imagesDownload(dir, params) {
 
     for (let i=0; i<duration; i++) {
         promises.push(download(`${cloud}/${encodeURIComponent(params["title"])}/${(cut+i).toString().padStart(5,"0")}.jpg`,
-            `${dir}/${(i+1).toString().padStart(5,"0")}.jpg`));
+            `${dir}/${(i+1).toString().padStart(5,"0")}.jpg`, res));
     }
 
     return Promise.all(promises).then(() => {
@@ -156,25 +160,33 @@ function imagesDownload(dir, params) {
     });
 }
 
-function download(uri, filename) {
+function download(uri, filename, res) {
     return new Promise(resolve => {
         request(uri)
         .pipe(fs.createWriteStream(filename))
-        .on("close", () => resolve(filename));
+        .on("close", () => {
+            res.write("download"+boundary);
+            resolve(filename);
+        });
     });
 }
 
-function ffmpeg(dir) {
+function ffmpeg(dir, res) {
     return new Promise((resolve,reject) => {
-        exec(`ffmpeg -framerate 12 -i "${dir}/%5d.jpg" -vf "scale=720:-1" -loop 0 -preset drawing -qscale 90 "${dir}/webp.webp" -progress pipe:1`,
+        let p = exec(`ffmpeg -framerate 12 -i "${dir}/%5d.jpg" -vf "scale=720:-1" -loop 0 -preset drawing -qscale 90 "${dir}/webp.webp" -progress pipe:1`,
         (err) => {
             if (err) reject(err);
             else {
                 resolve(`${dir}/webp.webp`);
                 if(debug) console.log(`conversion ${dir}/webp.webp finish`);
             }
-        }).stdout.on("data", data => {
-            console.log(data);
         });
+        p.stdout.on("data", data => {
+            res.write(data+boundary);
+            if(debug) console.log(data);
+        });
+        // p.stderr.on("data", data => {
+        //     console.log(data);
+        // });
     });
 }

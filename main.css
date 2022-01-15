@@ -99,6 +99,9 @@ textarea {
     margin-top: 0.5em;
     margin-bottom: 1em;
 }
+.item progress {
+    width: 50%;
+}
 
 @media ( max-width: 768px ) {
     body {
