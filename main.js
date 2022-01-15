@@ -214,11 +214,9 @@ backwardBtn.addEventListener("click", event => {
 document.querySelector("#slider_webp").append(document.querySelector("#itemTemplate").content.cloneNode(true));
 let webpItem = document.querySelector("#slider_webp div");
 webpItem.className = "";
-webpItem.addEventListener("click", event => {
-    let name = event.target.dataset.name;
-    if (name) {
-        saveAs(event.target.src, name);
-    }
+webpItem.querySelector("img").addEventListener("load", () => {
+    run_webp.textContent = "움짤";
+    run_webp.disabled = false;
 });
 
 let rub_webp = document.querySelector("#run_webp");
@@ -247,11 +245,6 @@ rub_webp.addEventListener("click", () => {
             "duration": lastCut - cut + 1,
             trimName
         }, webpItem);
-
-        webpItem.querySelector("img").onload = () => {
-            run_webp.textContent = "움짤";
-            run_webp.disabled = false;
-        }
     }
 });
 
@@ -288,10 +281,7 @@ runButton.addEventListener("click", () => {
             image.onload = function() {
                 if ((movieSelect=="list" && (movie=="ghibli"||(isNaN(movie) && list[movie].length>1))) ||
                     (movieSelect=="checkbox" && userSelect.size != 1)) {
-                    if (format == "webp") {
-                        trimName = `${trimName} (${p.textContent})`;
-                    }
-                    p.textContent = trimName;
+                    p.textContent = (format == "webp")? `${trimName} (${p.textContent})` : trimName;
                 }
                 else {
                     p.textContent = "";
@@ -346,6 +336,12 @@ function getWebp(params, item) {
     p.textContent = `0/${params.duration}개 다운로드`;
     bar.max = duration * 2;
     bar.value = 0;
+    bar.hidden = false;
+
+    if (img.getAttribute("src")) {
+        URL.revokeObjectURL(img.src);
+        img.src = "";
+    }
 
     fetch(`${protocol}://d2pty0y05env0k.cloudfront.net/webp`, {
         method: "POST",
