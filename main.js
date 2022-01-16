@@ -331,7 +331,7 @@ function getWebp(params, item) {
     let cut = params.cut;
     let lastCut = cut + params.duration - 1;
 
-    p.textContent = `0/${params.duration}개 다운로드`;
+    p.textContent = `0/${params.duration} 다운로드`;
     bar.max = duration * 2;
     bar.value = 0;
     bar.hidden = false;
