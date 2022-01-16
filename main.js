@@ -8,7 +8,6 @@ cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli";
 protocol = /[^:]+(?=:)/.exec(document.URL)[0];
 decoder = new TextDecoder();
 encoder = new TextEncoder();
-boundary = "\n--boundary--\n";
 const serverResponseWait = 800;
 
 fetch("list.json").then(response => response.json())
@@ -341,6 +340,7 @@ function getWebp(params, item) {
         img.src = "";
     }
 
+    // fetch(`http://ec2-15-165-219-179.ap-northeast-2.compute.amazonaws.com:5000/webp`, {
     fetch(`${protocol}://d2pty0y05env0k.cloudfront.net/webp`, {
         method: "POST",
         headers: {"Content-Type": "application/x-www-form-urlencoded"},
@@ -349,7 +349,7 @@ function getWebp(params, item) {
     .then(async (response) => {
         let reader = response.body.getReader();
         let chunks = [];
-        let progress, size, current;
+        let progress, boundary, size, current;
         let count = 0;
         let isFile = false;
 
@@ -376,22 +376,28 @@ function getWebp(params, item) {
             }
             else {
                 progress = decoder.decode(value);
-
                 // console.log(progress);
+                if (!boundary) {
+                    boundary = progress.split("\r\n")[0];
+                }
+
                 progress.split(boundary).filter(p => p.length).forEach(prog => {
-                    if (prog == "download") {
+                    let [, key, type, text, binary] = prog.split("\r\n");
+                    key = key.match(/name="(.+?)"/)[1];
+
+                    if (key == "download") {
                         p.textContent = `${++count}/${params.duration} 다운로드`;
                         bar.value += 1;
                     }
-                    else if (prog.startsWith("frame=")) {
-                        let status = prog.split("\n");
+                    else if (key == "progress") {
+                        let status = text.split("\n");
                         p.textContent = [status[0], status[1], status[7], status[10]].join(" ");
 
                         let frame = parseInt(status[0].slice("frame=".length));
                         bar.value = (bar.max / 2) + frame;
                     }
-                    else if (prog.startsWith("Content-Length")) {
-                        size = parseInt(prog.slice(prog.indexOf(" ") + 1));
+                    else if (key == "Content-Length") {
+                        size = parseInt(text);
                         size /= 1024;
 
                         if (size > 1000) {
@@ -404,10 +410,11 @@ function getWebp(params, item) {
 
                         isFile = true;
                     }
-                    else {
-                        let textEnd = progress.lastIndexOf(boundary) + boundary.length;
+                    else if (type) {
+                        let textEnd = progress.lastIndexOf(type) + (type + "\r\n\r\n").length;
                         let binaryStart = encoder.encode(progress.slice(0, textEnd)).length;
-
+                        console.log(progress)
+                        console.log([...progress.slice(textEnd-5, textEnd+5)]);
                         chunks = [...chunks, ...value.slice(binaryStart)];
                     }
                 });

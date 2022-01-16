@@ -2,8 +2,8 @@ const http = require("http");
 const fs = require("fs");
 const request = require("request");
 const exec = require("child_process").exec;
+const FormData = require("form-data");
 const crypto = require("crypto");
-const boundary = "\n--boundary--\n";
 
 let debug = true;
 
@@ -18,6 +18,7 @@ let app = http.createServer((req, res) => {
     })
     res.setHeader("Access-Control-Allow-Origin", "*");
 
+    let form = new FormData();
     let [url, parameters] = req.url.split("?");
     if (url == "/webp") {
         return req.on("end", () => {
@@ -37,10 +38,10 @@ let app = http.createServer((req, res) => {
 
             makeDirs(dir)
             .then(dir => {
-                return imagesDownload(dir, params, res);
+                return imagesDownload(dir, params, res, form);
             })
             .then(() => {
-                return ffmpeg(dir, res);
+                return ffmpeg(dir, res, form);
             })
             .catch(err => {
                 if(debug) console.error(err);
@@ -51,7 +52,7 @@ let app = http.createServer((req, res) => {
                         if (err) console.error(err);
                         else {
                             // res.writeHead(200, {"Content-Type": "image/webp", "Content-Length": fs.statSync(webp).size});
-                            res.write(`Content-Length: ${fs.statSync(webp).size}${boundary}`);
+                            sendForm(form, "Content-Length", fs.statSync(webp).size, res);
                             resolve(data);
                             if(debug) {
                                 console.log(res.getHeaders());
@@ -63,9 +64,10 @@ let app = http.createServer((req, res) => {
             })
             .then(data => {
                 return new Promise((resolve, reject) => {
-                    if(req.socket.destroyed) reject();
+                    if (req.socket.destroyed) reject();
                     else {
-                        res.end(data, () => {
+                        sendForm(form, "webp", data, res);
+                        res.end(callback = () => {
                             resolve();
                             if(debug) console.log(`send file ${dir}/webp.webp finish`);
                         });
@@ -133,15 +135,15 @@ function makeDirs(dir) {
     })
 }
 
-function imagesDownload(dir, params, res) {
+function imagesDownload(dir, params, res, form) {
     let promises = [];
     let cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli";
     let cut = parseInt(params["cut"]);
     let duration = parseInt(params["duration"]);
 
     for (let i=0; i<duration; i++) {
-        promises.push(download(`${cloud}/${encodeURIComponent(params["title"])}/${(cut+i).toString().padStart(5,"0")}.jpg`,
-            `${dir}/${(i+1).toString().padStart(5,"0")}.jpg`, res));
+        let filename = `${(cut+i).toString().padStart(5,"0")}.jpg`;
+        promises.push(download(`${cloud}/${encodeURIComponent(params["title"])}/${filename}`, `${dir}/${filename}`, res, form));
     }
 
     return Promise.all(promises).then(() => {
@@ -149,20 +151,20 @@ function imagesDownload(dir, params, res) {
     });
 }
 
-function download(uri, filename, res) {
+function download(uri, filename, res, form) {
     return new Promise(resolve => {
         request(uri)
         .pipe(fs.createWriteStream(filename))
         .on("close", () => {
-            res.write("download"+boundary);
-            resolve(filename);
+            sendForm(form, "download", "", res);
+            resolve();
         });
     });
 }
 
-function ffmpeg(dir, res) {
+function ffmpeg(dir, res, form) {
     return new Promise((resolve,reject) => {
-        let p = exec(`ffmpeg -framerate 12 -i "${dir}/%5d.jpg" -vf "scale=720:-1" -loop 0 -preset drawing -qscale 90 "${dir}/webp.webp" -progress pipe:1`,
+        let p = exec(`ffmpeg -framerate 12 -pattern_type glob -i "${dir}/*.jpg" -vf "scale=720:-1" -loop 0 -preset drawing -qscale 90 "${dir}/webp.webp" -progress pipe:1`,
         (err) => {
             if (err) reject(err);
             else {
@@ -171,11 +173,22 @@ function ffmpeg(dir, res) {
             }
         });
         p.stdout.on("data", data => {
-            res.write(data+boundary);
+            sendForm(form, "progress", data, res);
             if(debug) console.log(data);
         });
         // p.stderr.on("data", data => {
         //     console.log(data);
         // });
     });
+}
+
+function sendForm(form, key, value, res) {
+    form.append(key, value);
+    while (form._streams.length) {
+        let stream = form._streams.shift();
+        if (typeof stream == "function") {
+            continue
+        }
+        res.write(stream);
+    }
 }
