@@ -212,7 +212,7 @@ backwardBtn.addEventListener("click", event => {
 });
 
 document.querySelector("#slider_webp").append(document.querySelector("#itemTemplate").content.cloneNode(true));
-let webpItem = document.querySelector("#slider_webp div");
+let webpItem = document.querySelector("#slider_webp figure");
 webpItem.className = "";
 webpItem.querySelector("img").addEventListener("load", () => {
     run_webp.textContent = "움짤";
@@ -253,7 +253,7 @@ runButton.addEventListener("click", () => {
 
     for (let i=0; i<((format == "jpg")? jpgCount : webpCount); i++) {
         let image = items[i].querySelector("img");
-        let p = items[i].querySelector("p");
+        let caption = items[i].querySelector("figcaption");
         let title = getRandomMovie();
         let trimName = title.name.slice(3,title.name.indexOf("(")).trim()
         let cut;
@@ -277,10 +277,10 @@ runButton.addEventListener("click", () => {
             image.onload = function() {
                 if ((movieSelect=="list" && (movie=="ghibli"||(isNaN(movie) && list[movie].length>1))) ||
                     (movieSelect=="checkbox" && userSelect.size != 1)) {
-                    p.textContent = (format == "webp")? `${trimName} (${p.textContent})` : trimName;
+                    caption.textContent = (format == "webp")? `${trimName} (${caption.textContent})` : trimName;
                 }
                 else {
-                    p.textContent = "";
+                    caption.textContent = "";
                 }
                 resolve();
             }
@@ -294,12 +294,12 @@ runButton.addEventListener("click", () => {
 });
 
 document.querySelector("#sourceBtn").addEventListener("click", () => {
-    let source = [...document.querySelectorAll("div.item")].map(item => {
+    let source = [...document.querySelectorAll("figure.item")].map(item => {
         let template = document.querySelector("#shareTemplate").content.cloneNode(true);
 
         let [p1, p2, ] = template.querySelectorAll("p");
         p1.querySelector("img").src = item.querySelector("img").src;
-        p2.textContent = item.querySelector("p").textContent;
+        p2.textContent = item.querySelector("figcaption").textContent;
 
         return template.firstElementChild.innerHTML.trim().replace(/\n\s+/g, "\n");
     }).join("\n");
@@ -325,10 +325,10 @@ document.querySelectorAll("input[checked], select").forEach(input => {input.disp
 
 function getWebp(params, item) {
     let img = item.querySelector("img");
-    let p = item.querySelector("p");
+    let caption = item.querySelector("figcaption");
     let bar = item.querySelector("progress");
 
-    p.textContent = `0/${params.duration} 다운로드`;
+    caption.textContent = `0/${params.duration} 다운로드`;
     bar.max = duration * 2;
     bar.value = 0;
     bar.hidden = false;
@@ -371,7 +371,7 @@ function getWebp(params, item) {
                     current = `${(current).toFixed(1)}KB`;
                 }
 
-                p.textContent = `${size} / ${current} 전송`;
+                caption.textContent = `${size} / ${current} 전송`;
             }
             else {
                 progress = decoder.decode(value);
@@ -386,12 +386,12 @@ function getWebp(params, item) {
                     key = key.match(/name="(.+?)"/)[1];
 
                     if (key == "download") {
-                        p.textContent = `${++count}/${params.duration} 다운로드`;
+                        caption.textContent = `${++count}/${params.duration} 다운로드`;
                         bar.value += 1;
                     }
                     else if (key == "progress") {
                         let status = val.split("\n");
-                        p.textContent = [status[0], status[1], status[7], status[10]].join(" ");
+                        caption.textContent = [status[0], status[1], status[7], status[10]].join(" ");
 
                         let frame = parseInt(status[0].slice("frame=".length));
                         bar.value = (bar.max / 2) + frame;
@@ -418,7 +418,7 @@ function getWebp(params, item) {
                 });
             }
         }
-        p.textContent = size;
+        caption.textContent = size;
         bar.hidden = true;
 
         chunks = new Uint8Array(chunks);

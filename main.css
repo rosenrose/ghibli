@@ -95,7 +95,7 @@ textarea {
 .item img {
     width: 100%;
 }
-.item p {
+.item figcaption {
     margin-top: 0.5em;
     margin-bottom: 1em;
 }
