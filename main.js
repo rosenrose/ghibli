@@ -349,7 +349,7 @@ function getWebp(params, item) {
     .then(async (response) => {
         let reader = response.body.getReader();
         let chunks = [];
-        let progress, boundary, size, current;
+        let progress, boundary, filename, size, current;
         let count = 0;
         let isFile = false;
 
@@ -360,6 +360,7 @@ function getWebp(params, item) {
                 break;
             }
 
+            // console.log(filename, decoder.decode(value));
             if (isFile) {
                 chunks = [...chunks, ...value];
                 current = chunks.length / 1024;
@@ -376,13 +377,15 @@ function getWebp(params, item) {
             }
             else {
                 progress = decoder.decode(value);
-                // console.log(progress);
+                // console.log(filename, progress);
                 if (!boundary) {
                     boundary = progress.split("\r\n")[0];
+                    filename = progress.split("\r\n")[3];
                 }
 
                 progress.split(boundary).filter(p => p.length).forEach(prog => {
                     let [, key, type, text, binary] = prog.split("\r\n");
+                    // console.log(filename, prog.split("\r\n"))
                     key = key.match(/name="(.+?)"/)[1];
 
                     if (key == "download") {
@@ -407,15 +410,13 @@ function getWebp(params, item) {
                         else {
                             size = `${(size).toFixed(1)}KB`;
                         }
-
-                        isFile = true;
                     }
                     else if (type) {
                         let textEnd = progress.lastIndexOf(type) + (type + "\r\n\r\n").length;
                         let binaryStart = encoder.encode(progress.slice(0, textEnd)).length;
-                        console.log(progress)
-                        console.log([...progress.slice(textEnd-5, textEnd+5)]);
+
                         chunks = [...chunks, ...value.slice(binaryStart)];
+                        isFile = true;
                     }
                 });
             }
@@ -436,7 +437,7 @@ function getWebp(params, item) {
             });
         }
 
-        img.dataset.name = `${params.trimName}_${cut.toString().padStart(5,"0")}-${lastCut.toString().padStart(5,"0")}.webp`;
+        img.dataset.name = filename;
     });
 }
 

@@ -35,13 +35,18 @@ let app = http.createServer((req, res) => {
             exec(`echo "${log}" >> log.txt`, ()=>{});
 
             let dir = `temp/${crypto.createHash("sha256").update(ip + params["time"]).digest("hex")}`;
+            let cut = parseInt(params.cut);
+            let duration = parseInt(params.duration);
+            let lastCut = cut + duration - 1;
+            let webpName = `${params.trimName}_${cut.toString().padStart(5,"0")}-${lastCut.toString().padStart(5,"0")}.webp`;
 
+            sendForm(form, "filename", webpName, res);
             makeDirs(dir)
             .then(dir => {
                 return imagesDownload(dir, params, res, form);
             })
             .then(() => {
-                return ffmpeg(dir, res, form);
+                return ffmpeg(dir, webpName, res, form);
             })
             .catch(err => {
                 if(debug) console.error(err);
@@ -69,7 +74,7 @@ let app = http.createServer((req, res) => {
                         sendForm(form, "webp", data, res);
                         res.end(callback = () => {
                             resolve();
-                            if(debug) console.log(`send file ${dir}/webp.webp finish`);
+                            if(debug) console.log(`send file ${dir}/${webpName} finish`);
                         });
                     }
                 });
@@ -162,14 +167,14 @@ function download(uri, filename, res, form) {
     });
 }
 
-function ffmpeg(dir, res, form) {
+function ffmpeg(dir, webpName, res, form) {
     return new Promise((resolve,reject) => {
-        let p = exec(`ffmpeg -framerate 12 -pattern_type glob -i "${dir}/*.jpg" -vf "scale=720:-1" -loop 0 -preset drawing -qscale 90 "${dir}/webp.webp" -progress pipe:1`,
+        let p = exec(`ffmpeg -framerate 12 -pattern_type glob -i "${dir}/*.jpg" -vf "scale=720:-1" -loop 0 -preset drawing -qscale 90 "${dir}/${webpName}" -progress pipe:1`,
         (err) => {
             if (err) reject(err);
             else {
-                resolve(`${dir}/webp.webp`);
-                if(debug) console.log(`conversion ${dir}/webp.webp finish`);
+                resolve(`${dir}/${webpName}`);
+                if(debug) console.log(`conversion ${dir}/${webpName} finish`);
             }
         });
         p.stdout.on("data", data => {
