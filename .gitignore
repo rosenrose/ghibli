@@ -1,4 +1,5 @@
 *.cmd
+test*
 debug.log
 EC2.pem
 desktop.ini

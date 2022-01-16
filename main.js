@@ -235,11 +235,9 @@ rub_webp.addEventListener("click", () => {
         }
         let title = allList[movie];
         let trimName = title.name.slice(3,title.name.indexOf("(")).trim();
-        let time = Date.now();
 
         getWebp({
-            time,
-            "num": 0,
+            "time": Date.now(),
             "title": title.name,
             cut,
             "duration": lastCut - cut + 1,
@@ -253,7 +251,6 @@ runButton.addEventListener("click", () => {
     clear();
     let items = result.querySelectorAll(".item");
 
-    let time = Date.now();
     for (let i=0; i<((format == "jpg")? jpgCount : webpCount); i++) {
         let image = items[i].querySelector("img");
         let p = items[i].querySelector("p");
@@ -269,8 +266,7 @@ runButton.addEventListener("click", () => {
             cut = getRandomInt(1, title.cut+1-duration);
 
             getWebp({
-                "time": time + i,
-                "num": i+1,
+                "time": Date.now() + i,
                 "title": title.name,
                 cut,
                 duration,
@@ -290,9 +286,10 @@ runButton.addEventListener("click", () => {
             }
         }));
     }
+
     Promise.all(promises).then(() => {
         toggleRunButton();
-        promises = [];
+        promises.length = 0;
     })
 });
 
