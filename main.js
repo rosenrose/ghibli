@@ -372,7 +372,7 @@ function getWebp(params, item) {
                     current = `${(current).toFixed(1)}KB`;
                 }
 
-                p.textContent = `${size} 중 ${current} 전송`;
+                p.textContent = `${size} / ${current} 전송`;
             }
             else {
                 progress = decoder.decode(value);
@@ -380,7 +380,7 @@ function getWebp(params, item) {
                 // console.log(progress);
                 progress.split(boundary).filter(p => p.length).forEach(prog => {
                     if (prog == "download") {
-                        p.textContent = `${++count}/${params.duration}개 다운로드`;
+                        p.textContent = `${++count}/${params.duration} 다운로드`;
                         bar.value += 1;
                     }
                     else if (prog.startsWith("frame=")) {
