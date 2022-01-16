@@ -327,8 +327,6 @@ function getWebp(params, item) {
     let img = item.querySelector("img");
     let p = item.querySelector("p");
     let bar = item.querySelector("progress");
-    let cut = params.cut;
-    let lastCut = cut + params.duration - 1;
 
     p.textContent = `0/${params.duration} 다운로드`;
     bar.max = duration * 2;
@@ -379,13 +377,12 @@ function getWebp(params, item) {
                 progress = decoder.decode(value);
                 // console.log(filename, progress);
                 if (!boundary) {
-                    boundary = progress.split("\r\n")[0];
-                    filename = progress.split("\r\n")[3];
+                    [boundary, , ,filename] = progress.split("\r\n");
                 }
 
                 progress.split(boundary).filter(p => p.length).forEach(prog => {
-                    let [, key, type, text, binary] = prog.split("\r\n");
                     // console.log(filename, prog.split("\r\n"))
+                    let [, key, type, val] = prog.split("\r\n");
                     key = key.match(/name="(.+?)"/)[1];
 
                     if (key == "download") {
@@ -393,14 +390,14 @@ function getWebp(params, item) {
                         bar.value += 1;
                     }
                     else if (key == "progress") {
-                        let status = text.split("\n");
+                        let status = val.split("\n");
                         p.textContent = [status[0], status[1], status[7], status[10]].join(" ");
 
                         let frame = parseInt(status[0].slice("frame=".length));
                         bar.value = (bar.max / 2) + frame;
                     }
                     else if (key == "Content-Length") {
-                        size = parseInt(text);
+                        size = parseInt(val);
                         size /= 1024;
 
                         if (size > 1000) {
