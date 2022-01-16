@@ -7,6 +7,7 @@ result = document.querySelector("#result");
 cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli";
 protocol = /[^:]+(?=:)/.exec(document.URL)[0];
 decoder = new TextDecoder();
+encoder = new TextEncoder();
 boundary = "\n--boundary--\n";
 const serverResponseWait = 800;
 
@@ -404,7 +405,10 @@ function getWebp(params, item) {
                         isFile = true;
                     }
                     else {
-                        chunks = [...chunks, ...value.slice(progress.lastIndexOf(boundary) + boundary.length)];
+                        let textEnd = progress.lastIndexOf(boundary) + boundary.length;
+                        let binaryStart = encoder.encode(progress.slice(0, textEnd)).length;
+
+                        chunks = [...chunks, ...value.slice(binaryStart)];
                     }
                 });
             }
