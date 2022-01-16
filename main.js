@@ -8,7 +8,7 @@ cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli";
 protocol = /[^:]+(?=:)/.exec(document.URL)[0];
 decoder = new TextDecoder();
 encoder = new TextEncoder();
-const serverResponseWait = 800;
+const serverResponseWait = 1000;
 
 fetch("list.json").then(response => response.json())
 .then(json => {
