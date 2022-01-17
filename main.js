@@ -5,7 +5,7 @@ movieCheckbox = document.querySelector("#movieCheckbox");
 runButton = document.querySelector("#run");
 result = document.querySelector("#result");
 cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli";
-protocol = /[^:]+(?=:)/.exec(document.URL)[0];
+protocol = new URL(document.URL).protocol;
 decoder = new TextDecoder();
 encoder = new TextEncoder();
 const serverResponseWait = 1000;
@@ -73,7 +73,7 @@ document.querySelector("#formatSelect").addEventListener("change", event => {
     else if (format == "webp") {
         [...document.querySelectorAll("#webpNum input")].find(radio => radio.checked).dispatchEvent(new InputEvent("change",{bubbles: true}));
         let test = "";
-        fetch(`${protocol}://d2pty0y05env0k.cloudfront.net/`, {method:"POST"})
+        fetch(`${protocol}//d2pty0y05env0k.cloudfront.net/`, {method:"POST"})
         .then(response => response.text()).then(response => {test = response;});
         setTimeout(() => {
             if (!test) {
@@ -87,7 +87,7 @@ document.querySelector("#formatSelect").addEventListener("change", event => {
     else if (format == "slider") {
         movieSelect[0].click();
         let test = "";
-        fetch(`${protocol}://d2pty0y05env0k.cloudfront.net/`, {method:"POST"})
+        fetch(`${protocol}//d2pty0y05env0k.cloudfront.net/`, {method:"POST"})
         .then(response => response.text()).then(response => {test = response;});
         setTimeout(() => {
             if (!test) {
@@ -365,8 +365,8 @@ function getWebp(params, item) {
     }, webpResponseWait);
 
     try {
-        // fetch(`http://ec2-15-165-219-179.ap-northeast-2.compute.amazonaws.com:5000/webp`, {
-        fetch(`${protocol}://d2pty0y05env0k.cloudfront.net/webp`, {
+        fetch(`http://ec2-15-165-219-179.ap-northeast-2.compute.amazonaws.com:5000/webp`, {
+        // fetch(`${protocol}//d2pty0y05env0k.cloudfront.net/webp`, {
             method: "POST",
             headers: {"Content-Type": "application/x-www-form-urlencoded"},
             body: new URLSearchParams(params)
@@ -422,17 +422,18 @@ function getWebp(params, item) {
     
                             let frame = parseInt(status[0].slice("frame=".length));
                             bar.value = (bar.max / 2) + frame;
-                        }
-                        else if (key == "Content-Length") {
-                            size = parseInt(val);
-                            size /= 1024;
-    
-                            if (size > 1000) {
+
+                            if (status[11] == "progress=end") {
+                                size = parseInt(status[4].slice("total_size=".length));
                                 size /= 1024;
-                                size = `${(size).toFixed(1)}MB`;
-                            }
-                            else {
-                                size = `${(size).toFixed(1)}KB`;
+    
+                                if (size > 1000) {
+                                    size /= 1024;
+                                    size = `${(size).toFixed(1)}MB`;
+                                }
+                                else {
+                                    size = `${(size).toFixed(1)}KB`;
+                                }
                             }
                         }
                         else if (type) {
@@ -469,7 +470,7 @@ function getWebp(params, item) {
             console.error("promise", err);
             caption.textContent = "전송 실패";
             bar.hidden = true;
-            resetRunButton()
+            resetRunButton();
             clearTimeout(timeout);
         });
     }

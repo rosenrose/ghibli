@@ -60,7 +60,6 @@ let app = http.createServer((req, res) => {
                         if (err) console.error(err);
                         else {
                             // res.writeHead(200, {"Content-Type": "image/webp", "Content-Length": fs.statSync(webp).size});
-                            sendForm(form, "Content-Length", data.length, res);
                             sendForm(form, "webp", data, res, {"contentType": `image/${params.get("webpGif")}`});
                             res.end(callback = () => {
                                 resolve();
