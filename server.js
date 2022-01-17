@@ -7,7 +7,7 @@ const crypto = require("crypto");
 const webpWidth = 720;
 const gifWidth = 480;
 
-let debug = true;
+let debug = false;
 
 let app = http.createServer((req, res) => {
     let body = "";
@@ -60,26 +60,17 @@ let app = http.createServer((req, res) => {
                         if (err) console.error(err);
                         else {
                             // res.writeHead(200, {"Content-Type": "image/webp", "Content-Length": fs.statSync(webp).size});
-                            sendForm(form, "Content-Length", fs.statSync(webp).size, res);
-                            resolve(data);
-                            if(debug) {
-                                console.log(res.getHeaders());
-                                console.log(`read file ${webp} finish`);
-                            }
+                            sendForm(form, "Content-Length", data.length, res);
+                            sendForm(form, "webp", data, res, {"contentType": `image/${params.get("webpGif")}`});
+                            res.end(callback = () => {
+                                resolve();
+                                if(debug) {
+                                    console.log(`send file ${dir}/${filename} finish`);
+                                    console.log(res.getHeaders());
+                                }
+                            });
                         };
                     });
-                });
-            })
-            .then(data => {
-                return new Promise((resolve, reject) => {
-                    if (req.socket.destroyed) reject();
-                    else {
-                        sendForm(form, "webp", data, res);
-                        res.end(callback = () => {
-                            resolve();
-                            if(debug) console.log(`send file ${dir}/${filename} finish`);
-                        });
-                    }
                 });
             })
             .catch(() => {
@@ -194,8 +185,10 @@ function ffmpeg(dir, filename, res, form) {
     });
 }
 
-function sendForm(form, key, value, res) {
-    form.append(key, value);
+function sendForm(form, key, value, res, option) {
+    form.append(key, value, option);
+    if (debug) console.log(form);
+
     while (form._streams.length) {
         let stream = form._streams.shift();
         if (typeof stream == "function") {

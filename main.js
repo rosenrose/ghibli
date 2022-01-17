@@ -374,7 +374,7 @@ function getWebp(params, item) {
         .then(async (response) => {
             let reader = response.body.getReader();
             let chunks = [];
-            let progress, boundary, filename, size, current;
+            let progress, boundary, filename, size, current, contentType;
             let count = 0;
             let isFile = false;
     
@@ -385,7 +385,7 @@ function getWebp(params, item) {
                     break;
                 }
     
-                // console.log(filename, decoder.decode(value));
+                // console.log(filename+"\n", decoder.decode(value));
                 if (isFile) {
                     chunks = [...chunks, ...value];
                     current = chunks.length / 1024;
@@ -402,13 +402,13 @@ function getWebp(params, item) {
                 }
                 else {
                     progress = decoder.decode(value);
-                    // console.log(filename, progress);
+                    // console.log(filename+"\n", progress);
                     if (!boundary) {
                         [boundary, , ,filename] = progress.split("\r\n");
                     }
     
                     progress.split(boundary).filter(p => p.length).forEach(prog => {
-                        // console.log(filename, prog.split("\r\n"))
+                        // console.log(filename+"\n", prog.split("\r\n"))
                         let [, key, type, val] = prog.split("\r\n");
                         key = key.match(/name="(.+?)"/)[1];
     
@@ -441,6 +441,7 @@ function getWebp(params, item) {
     
                             chunks = [...chunks, ...value.slice(binaryStart)];
                             isFile = true;
+                            contentType = type.slice("Content-Type: ".length);
                         }
                     });
                 }
@@ -449,7 +450,7 @@ function getWebp(params, item) {
             bar.hidden = true;
     
             chunks = new Uint8Array(chunks);
-            blob = new Blob([chunks], {type: `image/${params.webpGif}`});
+            blob = new Blob([chunks], {"type": contentType});
             img.src = URL.createObjectURL(blob);
     
             if (!img.dataset.name) {
