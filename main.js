@@ -342,7 +342,7 @@ function getWebp(params, item) {
     fetch(`${protocol}://d2pty0y05env0k.cloudfront.net/webp`, {
         method: "POST",
         headers: {"Content-Type": "application/x-www-form-urlencoded"},
-        body: new URLSearchParams(params).toString().replaceAll("+", " ")
+        body: new URLSearchParams(params)
     })
     .then(async (response) => {
         let reader = response.body.getReader();
