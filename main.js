@@ -365,8 +365,8 @@ function getWebp(params, item) {
             }
         }, webpResponseWait);
 
-        fetch(`http://ec2-15-165-219-179.ap-northeast-2.compute.amazonaws.com:5000/webp`, {
-        // fetch(`${protocol}://d2pty0y05env0k.cloudfront.net/webp`, {
+        // fetch(`http://ec2-15-165-219-179.ap-northeast-2.compute.amazonaws.com:5000/webp`, {
+        fetch(`${protocol}://d2pty0y05env0k.cloudfront.net/webp`, {
             method: "POST",
             headers: {"Content-Type": "application/x-www-form-urlencoded"},
             body: new URLSearchParams(params)
