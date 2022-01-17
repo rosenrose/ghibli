@@ -308,7 +308,7 @@ runButton.addEventListener("click", () => {
     }
 
     Promise.all(promises).then(() => {
-        toggleRunButton();
+        resetRunButton();
         promises.length = 0;
     })
 });
