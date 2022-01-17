@@ -358,13 +358,13 @@ function getWebp(params, item) {
         img.src = "";
     }
 
-    try {
-        let timeout = setTimeout(() => {
-            if (!img.src) {
-                throw new Error("응답시간 초과");
-            }
-        }, webpResponseWait);
+    let timeout = setTimeout(() => {
+        if (!img.src) {
+            throw new Error("응답시간 초과");
+        }
+    }, webpResponseWait);
 
+    try {
         // fetch(`http://ec2-15-165-219-179.ap-northeast-2.compute.amazonaws.com:5000/webp`, {
         fetch(`${protocol}://d2pty0y05env0k.cloudfront.net/webp`, {
             method: "POST",
@@ -466,9 +466,10 @@ function getWebp(params, item) {
         })
         .catch(err => {
             console.error("promise", err);
-            caption.textContent = "연결 실패";
+            caption.textContent = "전송 실패";
             bar.hidden = true;
             resetRunButton()
+            clearTimeout(timeout);
         });
     }
     catch (err) {
@@ -476,6 +477,7 @@ function getWebp(params, item) {
         caption.textContent = "연결 실패";
         bar.hidden = true;
         resetRunButton();
+        clearTimeout(timeout);
     }
 }
 
