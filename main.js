@@ -484,7 +484,7 @@ window.addEventListener("error", event => {
     if (event.error.message == "응답시간 초과") {
         resetRunButton();
         document.querySelectorAll("progress").forEach(progress => {
-            if (progress.value != progress.max) {
+            if (!progress.hidden && progress.value != progress.max) {
                 progress.hidden = true;
                 progress.nextElementSibling.textContent = event.error.message;
             }
