@@ -15,11 +15,12 @@ let app = http.createServer((req, res) => {
     })
     .on("data", (data) => {
         body += data;
-    })
+    });
     res.setHeader("Access-Control-Allow-Origin", "*");
 
     let form = new FormData();
     let [url, parameters] = req.url.split("?");
+
     if (url == "/webp") {
         return req.on("end", () => {
             res.on("error", (err) => {
@@ -28,17 +29,17 @@ let app = http.createServer((req, res) => {
             });
 
             let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-            let params = urlParse(body);
-            let date = new Date(parseInt(params["time"]));
-            let log = `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} - ${params["title"]} ${params["duration"]} - ${ip}`
+            let params = new URLSearchParams(body);
+            let date = new Date(parseInt(params.get("time")));
+            let log = `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} - ${params.get("title")} ${params.get("duration")} - ${ip}`
             if(debug) console.log(log);
             exec(`echo "${log}" >> log.txt`, ()=>{});
 
-            let dir = `temp/${crypto.createHash("sha256").update(ip + params["time"]).digest("hex")}`;
-            let cut = parseInt(params.cut);
-            let duration = parseInt(params.duration);
+            let dir = `temp/${crypto.createHash("sha256").update(ip + params.get("time")).digest("hex")}`;
+            let cut = parseInt(params.get("cut"));
+            let duration = parseInt(params.get("duration"));
             let lastCut = cut + duration - 1;
-            let webpName = `${params.trimName}_${cut.toString().padStart(5,"0")}-${lastCut.toString().padStart(5,"0")}.webp`;
+            let webpName = `${params.get("trimName")}_${cut.toString().padStart(5,"0")}-${lastCut.toString().padStart(5,"0")}.webp`;
 
             sendForm(form, "filename", webpName, res);
             makeDirs(dir)
@@ -124,10 +125,6 @@ let app = http.createServer((req, res) => {
 })
 app.listen(8080);
 
-function urlParse(urlencoded) {
-    return Object.fromEntries(urlencoded.split("&").map(keyVal => keyVal.split("=")).map(([k,v]) => [k,decodeURIComponent(v)]));
-}
-
 function makeDirs(dir) {
     return new Promise(resolve => {
         fs.mkdir(dir, {recursive: true}, (err) => {
@@ -143,12 +140,12 @@ function makeDirs(dir) {
 function imagesDownload(dir, params, res, form) {
     let promises = [];
     let cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli";
-    let cut = parseInt(params["cut"]);
-    let duration = parseInt(params["duration"]);
+    let cut = parseInt(params.get("cut"));
+    let duration = parseInt(params.get("duration"));
 
     for (let i=0; i<duration; i++) {
         let filename = `${(cut+i).toString().padStart(5,"0")}.jpg`;
-        promises.push(download(`${cloud}/${encodeURIComponent(params["title"])}/${filename}`, `${dir}/${filename}`, res, form));
+        promises.push(download(`${cloud}/${encodeURIComponent(params.get("title"))}/${filename}`, `${dir}/${filename}`, res, form));
     }
 
     return Promise.all(promises).then(() => {

@@ -342,7 +342,7 @@ function getWebp(params, item) {
     fetch(`${protocol}://d2pty0y05env0k.cloudfront.net/webp`, {
         method: "POST",
         headers: {"Content-Type": "application/x-www-form-urlencoded"},
-        body: urlEncode(params)
+        body: new URLSearchParams(params).toString().replaceAll("+", " ")
     })
     .then(async (response) => {
         let reader = response.body.getReader();
@@ -477,10 +477,6 @@ function slideShow() {
             slider.dispatchEvent(new InputEvent("change"));
         }, interval);
     }
-}
-
-function urlEncode(obj) {
-    return Object.entries(obj).map(([key,val]) => `${key}=${encodeURIComponent(val)}`).join("&");
 }
 
 function toggleRunButton() {
