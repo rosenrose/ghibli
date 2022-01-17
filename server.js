@@ -4,6 +4,8 @@ const request = require("request");
 const exec = require("child_process").exec;
 const FormData = require("form-data");
 const crypto = require("crypto");
+const webpWidth = 720;
+const gifWidth = 480;
 
 let debug = true;
 
@@ -39,15 +41,15 @@ let app = http.createServer((req, res) => {
             let cut = parseInt(params.get("cut"));
             let duration = parseInt(params.get("duration"));
             let lastCut = cut + duration - 1;
-            let webpName = `${params.get("trimName")}_${cut.toString().padStart(5,"0")}-${lastCut.toString().padStart(5,"0")}.webp`;
+            let filename = `${params.get("trimName")}_${cut.toString().padStart(5,"0")}-${lastCut.toString().padStart(5,"0")}.${params.get("webpGif")}`;
 
-            sendForm(form, "filename", webpName, res);
+            sendForm(form, "filename", filename, res);
             makeDirs(dir)
             .then(dir => {
                 return imagesDownload(dir, params, res, form);
             })
             .then(() => {
-                return ffmpeg(dir, webpName, res, form);
+                return ffmpeg(dir, filename, res, form);
             })
             .catch(err => {
                 if(debug) console.error(err);
@@ -75,7 +77,7 @@ let app = http.createServer((req, res) => {
                         sendForm(form, "webp", data, res);
                         res.end(callback = () => {
                             resolve();
-                            if(debug) console.log(`send file ${dir}/${webpName} finish`);
+                            if(debug) console.log(`send file ${dir}/${filename} finish`);
                         });
                     }
                 });
@@ -164,14 +166,22 @@ function download(uri, filename, res, form) {
     });
 }
 
-function ffmpeg(dir, webpName, res, form) {
+function ffmpeg(dir, filename, res, form) {
     return new Promise((resolve,reject) => {
-        let p = exec(`ffmpeg -framerate 12 -pattern_type glob -i "${dir}/*.jpg" -vf "scale=720:-1" -loop 0 -preset drawing -qscale 90 "${dir}/${webpName}" -progress pipe:1`,
-        (err) => {
+        let command;
+
+        if (filename.endsWith("webp")) {
+            command = `-vf "scale=${webpWidth}:-1" -loop 0 -preset drawing -qscale 90`;
+        }
+        else {
+            command = `-lavfi "split[a][b];[a]scale=${gifWidth}:-1,palettegen[p];[b]scale=${gifWidth}:-1[g];[g][p]paletteuse"`
+        }
+
+        let p = exec(`ffmpeg -framerate 12 -pattern_type glob -i "${dir}/*.jpg" ${command} "${dir}/${filename}" -progress pipe:1`, (err) => {
             if (err) reject(err);
             else {
-                resolve(`${dir}/${webpName}`);
-                if(debug) console.log(`conversion ${dir}/${webpName} finish`);
+                resolve(`${dir}/${filename}`);
+                if(debug) console.log(`conversion ${dir}/${filename} finish`);
             }
         });
         p.stdout.on("data", data => {

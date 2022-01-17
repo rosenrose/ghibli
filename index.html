@@ -14,7 +14,7 @@
             <fieldset id="formatSelect">
                 <legend>형식</legend>
                 <label class="color-white"><input type="radio" name="format" value="jpg" checked>랜덤짤</label>
-                <label class="color-white"><input type="radio" name="format" value="webp">랜덤움짤(WebP)</label>
+                <label class="color-white"><input type="radio" name="format" value="webp">랜덤움짤</label>
                 <label class="color-white"><input type="radio" name="format" value="slider">장면 선택</label>
             </fieldset>
             <fieldset id="movieSelect">
@@ -57,12 +57,17 @@
                     <label class="color-white webp"><input type="radio" name="webp" value="4">4개</label>
                 </div>
             </fieldset>
-            <fieldset id="durationSelect" hidden>
-                <legend>움짤 길이</legend>
+            <fieldset id="durationSelect" class="inline" hidden>
+                <legend>길이</legend>
                 <label class="color-white"><input type="radio" name="duration" value="18" checked>1.5초</label>
                 <label class="color-white"><input type="radio" name="duration" value="36">3초</label>
                 <label class="color-white"><input type="radio" name="duration" value="60">5초</label>
                 <label class="color-white"><input type="radio" name="duration" value="84">7초</label>
+            </fieldset>
+            <fieldset id="webpGifSelect" class="inline" hidden>
+                <legend>포맷</legend>
+                <label class="color-white"><input type="radio" name="webpGif" value="webp" checked>WebP</label>
+                <label class="color-white"><input type="radio" name="webpGif" value="gif">gif</label>
             </fieldset>
             <fieldset id="columnSelect">
                 <legend>PC 화면</legend>

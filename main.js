@@ -9,6 +9,7 @@ protocol = /[^:]+(?=:)/.exec(document.URL)[0];
 decoder = new TextDecoder();
 encoder = new TextEncoder();
 const serverResponseWait = 1000;
+const webpResponseWait = 1000 * 60;
 
 fetch("list.json").then(response => response.json())
 .then(json => {
@@ -55,7 +56,7 @@ document.querySelector("#formatSelect").addEventListener("change", event => {
     if (format != "slider") {
         selectAttribute(`.${format}`, "hidden", false, true, ...document.querySelectorAll("#webpNum, #jpgNum"));
     }
-    document.querySelector("#durationSelect").hidden = format == "jpg";
+    toggleAttribute("style.display", (format == "jpg")? "none" : "", ...document.querySelectorAll("#durationSelect, #webpGifSelect"));
     document.querySelector("#share").hidden = format != "jpg";
     document.querySelector("#sliderSelect").hidden = format != "slider";
     runButton.style.display = (format == "slider")? "none" : "";
@@ -63,7 +64,7 @@ document.querySelector("#formatSelect").addEventListener("change", event => {
 
     if (format == "jpg") {
         [...document.querySelectorAll("#jpgNum input")].find(radio => radio.checked).dispatchEvent(new InputEvent("change",{bubbles: true}));
-        if (runButton.disabled) {
+        if (runButton.textContent.startsWith("오전")) {
             toggleRunButton();
             rulePC.style["font-size"] = "3.5em";
             ruleMobile.style["font-size"] = "2.5em";
@@ -128,6 +129,23 @@ document.querySelector("#webpNum").addEventListener("change", event => {
 });
 document.querySelector("#durationSelect").addEventListener("change", event => {
     duration = parseInt(event.target.value);
+});
+document.querySelector("#webpGifSelect").addEventListener("change", event => {
+    webpGif = event.target.value;
+    let num4 = document.querySelector("#webpNum input[value='4']");
+    let duration7 = document.querySelector("#durationSelect input[value='84']");
+
+    toggleInput(num4, webpGif == "webp");
+    toggleInput(duration7, webpGif == "webp");
+
+    if (webpGif == "gif") {
+        if (num4.checked) {
+            num4.parentNode.previousElementSibling.click();
+        }
+        if (duration7.checked) {
+            duration7.parentNode.previousElementSibling.click();
+        }
+    }
 });
 document.querySelector("#columnSelect").addEventListener("change", event => {
     column = parseInt(event.target.value);
@@ -241,7 +259,8 @@ rub_webp.addEventListener("click", () => {
             "title": title.name,
             cut,
             "duration": lastCut - cut + 1,
-            trimName
+            trimName,
+            webpGif
         }, webpItem);
     }
 });
@@ -270,7 +289,8 @@ runButton.addEventListener("click", () => {
                 "title": title.name,
                 cut,
                 duration,
-                trimName
+                trimName,
+                webpGif
             }, items[i]);
         }
         promises.push(new Promise(resolve => {
@@ -338,104 +358,143 @@ function getWebp(params, item) {
         img.src = "";
     }
 
-    // fetch(`http://ec2-15-165-219-179.ap-northeast-2.compute.amazonaws.com:5000/webp`, {
-    fetch(`${protocol}://d2pty0y05env0k.cloudfront.net/webp`, {
-        method: "POST",
-        headers: {"Content-Type": "application/x-www-form-urlencoded"},
-        body: new URLSearchParams(params)
-    })
-    .then(async (response) => {
-        let reader = response.body.getReader();
-        let chunks = [];
-        let progress, boundary, filename, size, current;
-        let count = 0;
-        let isFile = false;
-
-        while (true) {
-            let {value, done} = await reader.read();
-
-            if (done) {
-                break;
+    try {
+        let timeout = setTimeout(() => {
+            if (!img.src) {
+                throw new Error("응답시간 초과");
             }
+        }, webpResponseWait);
 
-            // console.log(filename, decoder.decode(value));
-            if (isFile) {
-                chunks = [...chunks, ...value];
-                current = chunks.length / 1024;
-
-                if (size.includes("MB")) {
-                    current /= 1024;
-                    current = `${(current).toFixed(1)}MB`;
+        fetch(`http://ec2-15-165-219-179.ap-northeast-2.compute.amazonaws.com:5000/webp`, {
+        // fetch(`${protocol}://d2pty0y05env0k.cloudfront.net/webp`, {
+            method: "POST",
+            headers: {"Content-Type": "application/x-www-form-urlencoded"},
+            body: new URLSearchParams(params)
+        })
+        .then(async (response) => {
+            let reader = response.body.getReader();
+            let chunks = [];
+            let progress, boundary, filename, size, current;
+            let count = 0;
+            let isFile = false;
+    
+            while (true) {
+                let {value, done} = await reader.read();
+    
+                if (done) {
+                    break;
+                }
+    
+                // console.log(filename, decoder.decode(value));
+                if (isFile) {
+                    chunks = [...chunks, ...value];
+                    current = chunks.length / 1024;
+    
+                    if (size.includes("MB")) {
+                        current /= 1024;
+                        current = `${(current).toFixed(1)}MB`;
+                    }
+                    else {
+                        current = `${(current).toFixed(1)}KB`;
+                    }
+    
+                    caption.textContent = `${size} / ${current} 전송`;
                 }
                 else {
-                    current = `${(current).toFixed(1)}KB`;
-                }
-
-                caption.textContent = `${size} / ${current} 전송`;
-            }
-            else {
-                progress = decoder.decode(value);
-                // console.log(filename, progress);
-                if (!boundary) {
-                    [boundary, , ,filename] = progress.split("\r\n");
-                }
-
-                progress.split(boundary).filter(p => p.length).forEach(prog => {
-                    // console.log(filename, prog.split("\r\n"))
-                    let [, key, type, val] = prog.split("\r\n");
-                    key = key.match(/name="(.+?)"/)[1];
-
-                    if (key == "download") {
-                        caption.textContent = `${++count}/${params.duration} 다운로드`;
-                        bar.value += 1;
+                    progress = decoder.decode(value);
+                    // console.log(filename, progress);
+                    if (!boundary) {
+                        [boundary, , ,filename] = progress.split("\r\n");
                     }
-                    else if (key == "progress") {
-                        let status = val.split("\n");
-                        caption.textContent = [status[0], status[1], status[7], status[10]].join(" ");
-
-                        let frame = parseInt(status[0].slice("frame=".length));
-                        bar.value = (bar.max / 2) + frame;
-                    }
-                    else if (key == "Content-Length") {
-                        size = parseInt(val);
-                        size /= 1024;
-
-                        if (size > 1000) {
+    
+                    progress.split(boundary).filter(p => p.length).forEach(prog => {
+                        // console.log(filename, prog.split("\r\n"))
+                        let [, key, type, val] = prog.split("\r\n");
+                        key = key.match(/name="(.+?)"/)[1];
+    
+                        if (key == "download") {
+                            caption.textContent = `${++count}/${params.duration} 다운로드`;
+                            bar.value += 1;
+                        }
+                        else if (key == "progress") {
+                            let status = val.split("\n");
+                            caption.textContent = [status[0], status[1], status[7], status[10]].join(" ");
+    
+                            let frame = parseInt(status[0].slice("frame=".length));
+                            bar.value = (bar.max / 2) + frame;
+                        }
+                        else if (key == "Content-Length") {
+                            size = parseInt(val);
                             size /= 1024;
-                            size = `${(size).toFixed(1)}MB`;
+    
+                            if (size > 1000) {
+                                size /= 1024;
+                                size = `${(size).toFixed(1)}MB`;
+                            }
+                            else {
+                                size = `${(size).toFixed(1)}KB`;
+                            }
                         }
-                        else {
-                            size = `${(size).toFixed(1)}KB`;
+                        else if (type) {
+                            let textEnd = progress.lastIndexOf(type) + (type + "\r\n\r\n").length;
+                            let binaryStart = encoder.encode(progress.slice(0, textEnd)).length;
+    
+                            chunks = [...chunks, ...value.slice(binaryStart)];
+                            isFile = true;
                         }
-                    }
-                    else if (type) {
-                        let textEnd = progress.lastIndexOf(type) + (type + "\r\n\r\n").length;
-                        let binaryStart = encoder.encode(progress.slice(0, textEnd)).length;
-
-                        chunks = [...chunks, ...value.slice(binaryStart)];
-                        isFile = true;
+                    });
+                }
+            }
+            caption.textContent = size;
+            bar.hidden = true;
+    
+            chunks = new Uint8Array(chunks);
+            blob = new Blob([chunks], {type: `image/${params.webpGif}`});
+            img.src = URL.createObjectURL(blob);
+    
+            if (!img.dataset.name) {
+                img.addEventListener("click", event => {
+                    let name = event.target.dataset.name;
+                    if (name) {
+                        saveAs(event.target.src, name);
                     }
                 });
             }
-        }
-        caption.textContent = size;
+    
+            img.dataset.name = filename;
+            clearTimeout(timeout);
+        })
+        .catch(err => {
+            console.error("promise", err);
+            caption.textContent = "연결 실패";
+            bar.hidden = true;
+            resetRunButton()
+        });
+    }
+    catch (err) {
+        console.error("fetch", err);
+        caption.textContent = "연결 실패";
         bar.hidden = true;
+        resetRunButton();
+    }
+}
 
-        chunks = new Uint8Array(chunks);
-        blob = new Blob([chunks], {type: "image/webp"});
-        img.src = URL.createObjectURL(blob);
+window.addEventListener("error", event => {
+    console.error("timeout", event.error);
+    if (event.error.message == "응답시간 초과") {
+        resetRunButton();
+        document.querySelectorAll("progress").forEach(progress => {
+            if (progress.value != progress.max) {
+                progress.hidden = true;
+                progress.nextElementSibling.textContent = event.error.message;
+            }
+        });
+    }
+});
 
-        if (!img.dataset.name) {
-            img.addEventListener("click", event => {
-                let name = event.target.dataset.name;
-                if (name) {
-                    saveAs(event.target.src, name);
-                }
-            });
-        }
-
-        img.dataset.name = filename;
-    });
+function resetRunButton() {
+    runButton.disabled = false;
+    runButton.textContent = "뽑기";
 }
 
 function getRandomMovie() {
@@ -569,4 +628,9 @@ function appendRestore() {
         temp.parentNode.after(...temp.children);
         temp.remove();
     });
+}
+
+function toggleInput(input, condition) {
+    input.disabled = !condition;
+    input.parentNode.style.color = condition? "" : "gray";
 }
