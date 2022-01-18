@@ -365,8 +365,8 @@ function getWebp(params, item) {
     }, webpResponseWait);
 
     try {
-        fetch(`http://ec2-15-165-219-179.ap-northeast-2.compute.amazonaws.com:5000/webp`, {
-        // fetch(`${protocol}//d2pty0y05env0k.cloudfront.net/webp`, {
+        // fetch(`http://ec2-15-165-219-179.ap-northeast-2.compute.amazonaws.com:5000/webp`, {
+        fetch(`${protocol}//d2pty0y05env0k.cloudfront.net/webp`, {
             method: "POST",
             headers: {"Content-Type": "application/x-www-form-urlencoded"},
             body: new URLSearchParams(params)
@@ -420,11 +420,11 @@ function getWebp(params, item) {
                             let status = val.split("\n");
                             caption.textContent = [status[0], status[1], status[7], status[10]].join(" ");
     
-                            let frame = parseInt(status[0].slice("frame=".length));
+                            let frame = parseInt(status[0].split("=")[1]);
                             bar.value = (bar.max / 2) + frame;
 
                             if (status[11] == "progress=end") {
-                                size = parseInt(status[4].slice("total_size=".length));
+                                size = parseInt(status[4].split("=")[1]);
                                 size /= 1024;
     
                                 if (size > 1000) {
