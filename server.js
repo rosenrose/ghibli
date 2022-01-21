@@ -9,6 +9,8 @@ const gifWidth = 480;
 
 let debug = false;
 
+exec("rm -rf temp", () => {});
+
 let app = http.createServer((req, res) => {
     let body = "";
     req.on("error", (err) => {
@@ -33,7 +35,7 @@ let app = http.createServer((req, res) => {
             let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
             let params = new URLSearchParams(body);
             let date = new Date(parseInt(params.get("time")));
-            let log = `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} - ${params.get("title")} ${params.get("duration")} - ${ip}`
+            let log = `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${date.getMinutes()}: - ${params.get("title")} ${parseInt(params.get("cut"))} ${params.get("duration")} ${params.get("webpGif")} - ${ip}`
             if(debug) console.log(log);
             exec(`echo "${log}" >> log.txt`, ()=>{});
 
@@ -73,6 +75,7 @@ let app = http.createServer((req, res) => {
                 });
             })
             .catch(() => {
+                res.end("error!");
                 if(debug) {
                     console.log("connection destroyed");
                 }

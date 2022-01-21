@@ -10,6 +10,7 @@ decoder = new TextDecoder();
 encoder = new TextEncoder();
 const serverResponseWait = 1000;
 const webpResponseWait = 1000 * 60;
+const fps = 12;
 
 fetch("list.json").then(response => response.json())
 .then(json => {
@@ -128,12 +129,12 @@ document.querySelector("#webpNum").addEventListener("change", event => {
     webpCount = parseInt(event.target.value);
 });
 document.querySelector("#durationSelect").addEventListener("change", event => {
-    duration = parseInt(event.target.value);
+    duration = parseInt(Number(event.target.value) * fps);
 });
 document.querySelector("#webpGifSelect").addEventListener("change", event => {
     webpGif = event.target.value;
     let num4 = document.querySelector("#webpNum input[value='4']");
-    let duration7 = document.querySelector("#durationSelect input[value='84']");
+    let duration7 = document.querySelector("#durationSelect input[value='7']");
 
     toggleInput(num4, webpGif == "webp");
     toggleInput(duration7, webpGif == "webp");
