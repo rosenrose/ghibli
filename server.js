@@ -140,7 +140,7 @@ function imagesDownload(dir, params, res, form) {
 
     for (let i=0; i<duration; i++) {
         let filename = `${(cut+i).toString().padStart(5,"0")}.jpg`;
-        promises.push(download(`${cloud}/${encodeURIComponent(params.get("title"))}/${filename}`, `${dir}/${filename}`, res, form));
+        promises.push(download(new URL(`${cloud}/${params.get("title")}/${filename}`).href, `${dir}/${filename}`, res, form));
     }
 
     return Promise.all(promises).then(() => {
