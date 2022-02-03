@@ -6,6 +6,7 @@ const FormData = require("form-data");
 const crypto = require("crypto");
 const webpWidth = 720;
 const gifWidth = 480;
+const durationLimit = 84;
 
 let debug = false;
 
@@ -20,7 +21,7 @@ let app = http.createServer((req, res) => {
     .on("data", (data) => {
         body += data;
     });
-    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Origin", "https://rosenrose.github.io");
 
     let form = new FormData();
     let [url, parameters] = req.url.split("?");
@@ -34,6 +35,8 @@ let app = http.createServer((req, res) => {
 
             let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
             let params = new URLSearchParams(body);
+            params.set("duration", Math.min(parseInt(params.get("duration")), durationLimit));
+
             let date = new Date(parseInt(params.get("time")));
             let log = `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${date.getMinutes()}: - ${params.get("title")} ${parseInt(params.get("cut"))} ${params.get("duration")} ${params.get("webpGif")} - ${ip}`
             if(debug) console.log(log);
@@ -136,7 +139,7 @@ function imagesDownload(dir, params, res, form) {
     let promises = [];
     let cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli";
     let cut = parseInt(params.get("cut"));
-    let duration = Math.min(parseInt(params.get("duration")), 84);
+    let duration = parseInt(params.get("duration"));
 
     for (let i=0; i<duration; i++) {
         let filename = `${(cut+i).toString().padStart(5,"0")}.jpg`;
