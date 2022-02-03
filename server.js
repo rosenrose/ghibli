@@ -136,7 +136,7 @@ function imagesDownload(dir, params, res, form) {
     let promises = [];
     let cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli";
     let cut = parseInt(params.get("cut"));
-    let duration = parseInt(params.get("duration"));
+    let duration = Math.min(parseInt(params.get("duration")), 84);
 
     for (let i=0; i<duration; i++) {
         let filename = `${(cut+i).toString().padStart(5,"0")}.jpg`;
