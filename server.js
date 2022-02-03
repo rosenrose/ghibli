@@ -5,7 +5,7 @@ const exec = require("child_process").exec;
 const FormData = require("form-data");
 const crypto = require("crypto");
 const webpWidth = 720;
-const gifWidth = 480;
+const gifWidth = 360;
 const durationLimit = 84;
 
 let debug = false;
