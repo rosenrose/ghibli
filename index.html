@@ -1,128 +1,178 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset='utf-8'>
-    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>지브리 랜덤짤</title>
-    <meta name='viewport' content='width=device-width, initial-scale=1'>
-    <link rel='stylesheet' type='text/css' media='screen' href='main.css' title="myCSS">
-</head>
-<body>
+    <link rel="stylesheet" type="text/css" media="screen" href="main.css" title="myCSS" />
+  </head>
+  <body>
     <h1 class="center color-white">지브리 짤 생성기</h1>
     <div>
-        <form id="select">
-            <fieldset id="formatSelect">
-                <legend>형식</legend>
-                <label class="color-white"><input type="radio" name="format" value="jpg" checked>랜덤짤</label>
-                <label class="color-white"><input type="radio" name="format" value="webp">랜덤움짤</label>
-                <label class="color-white"><input type="radio" name="format" value="slider">장면 선택</label>
-            </fieldset>
-            <fieldset id="movieSelect">
-                <legend>작품</legend>
-                <label class="color-white"><input type="radio" name="movie" value="list" checked>목록</label>
-                <label class="color-white"><input type="radio" name="movie" value="checkbox">직접 선택</label>
-                <select id="movieList" class="list">
-                    <option value="ghibli">----- 지브리 작품 모두 -----</option>
-                    <option value="long" selected>----- 장편 -----</option>
-                    <option value="game">----- 게임 -----</option>
-                    <option value="short">----- 단편, CF -----</option>
-                    <option value="etc">----- 지브리는 아니지만 -----</option>
-                </select>
-                <table id="movieCheckbox" class="checkbox">
-                    <tr><td></td><td></td><td></td><td></td></tr>
-                    <tr><td></td><td></td><td></td><td></td></tr>
-                    <tr><td></td><td></td><td></td><td></td></tr>
-                    <tr><td></td><td></td><td></td><td></td></tr>
-                    <tr><td></td><td></td><td></td><td></td></tr>
-                    <tr><td></td><td></td></tr>
-                    <tr><th colspan=4>&nbsp;</th></tr>
-                    <tr><td></td><td></td><td></td><td></td></tr>
-                    <tr><td></td><td></td><td></td><td></td></tr>
-                    <tr><td></td><td></td><td></td><td></td></tr>
-                    <tr><td></td><td></td><td></td><td></td></tr>
-                </table>
-            </fieldset>
-            <fieldset id="countSelect">
-                <legend>개수</legend>
-                <div id="jpgNum" class="jpg">
-                    <label class="color-white jpg"><input type="radio" name="jpg" value="6" checked>6개</label>
-                    <label class="color-white jpg"><input type="radio" name="jpg" value="12">12개</label>
-                    <label class="color-white jpg"><input type="radio" name="jpg" value="24">24개</label>
-                    <label class="color-white jpg"><input type="radio" name="jpg" value="36">36개</label>
-                </div>
-                <div id="webpNum" class="webp" hidden>
-                    <label class="color-white webp"><input type="radio" name="webp" value="1" checked>1개</label>
-                    <label class="color-white webp"><input type="radio" name="webp" value="2">2개</label>
-                    <label class="color-white webp"><input type="radio" name="webp" value="3">3개</label>
-                    <label class="color-white webp"><input type="radio" name="webp" value="4">4개</label>
-                </div>
-            </fieldset>
-            <fieldset id="durationSelect" class="inline" hidden>
-                <legend>길이</legend>
-                <label class="color-white"><input type="radio" name="duration" value="1.5" checked>1.5초</label>
-                <label class="color-white"><input type="radio" name="duration" value="3">3초</label>
-                <label class="color-white"><input type="radio" name="duration" value="5">5초</label>
-                <label class="color-white"><input type="radio" name="duration" value="7">7초</label>
-            </fieldset>
-            <fieldset id="webpGifSelect" class="inline" hidden>
-                <legend>포맷</legend>
-                <label class="color-white"><input type="radio" name="webpGif" value="webp" checked>WebP</label>
-                <label class="color-white"><input type="radio" name="webpGif" value="gif">gif</label>
-            </fieldset>
-            <fieldset id="columnSelect">
-                <legend>PC 화면</legend>
-                <label class="color-white"><input type="radio" name="column" value="2" checked>2개씩 보기</label>
-                <label class="color-white"><input type="radio" name="column" value="3">3개씩 보기</label>
-            </fieldset>
-        </form>
+      <form id="select">
+        <fieldset id="formatSelect">
+          <legend>형식</legend>
+          <label class="color-white"><input type="radio" name="format" value="jpg" checked />랜덤짤</label>
+          <label class="color-white"><input type="radio" name="format" value="webp" />랜덤움짤</label>
+          <label class="color-white"><input type="radio" name="format" value="slider" />장면 선택</label>
+        </fieldset>
+        <fieldset id="movieSelect">
+          <legend>작품</legend>
+          <label class="color-white"><input type="radio" name="movie" value="list" checked />목록</label>
+          <label class="color-white"><input type="radio" name="movie" value="checkbox" />직접 선택</label>
+          <select id="movieList" class="list">
+            <option value="ghibli">----- 지브리 작품 모두 -----</option>
+            <option value="long" selected>----- 장편 -----</option>
+            <option value="game">----- 게임 -----</option>
+            <option value="short">----- 단편, CF -----</option>
+            <option value="etc">----- 지브리는 아니지만 -----</option>
+          </select>
+          <table id="movieCheckbox" class="checkbox">
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <th colspan="4">&nbsp;</th>
+            </tr>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+          </table>
+        </fieldset>
+        <fieldset id="countSelect">
+          <legend>개수</legend>
+          <div id="jpgNum" class="jpg">
+            <label class="color-white jpg"><input type="radio" name="jpg" value="6" checked />6개</label>
+            <label class="color-white jpg"><input type="radio" name="jpg" value="12" />12개</label>
+            <label class="color-white jpg"><input type="radio" name="jpg" value="24" />24개</label>
+            <label class="color-white jpg"><input type="radio" name="jpg" value="36" />36개</label>
+          </div>
+          <div id="webpNum" class="webp" hidden>
+            <label class="color-white webp"><input type="radio" name="webp" value="1" checked />1개</label>
+            <label class="color-white webp"><input type="radio" name="webp" value="2" />2개</label>
+            <label class="color-white webp"><input type="radio" name="webp" value="3" />3개</label>
+            <label class="color-white webp"><input type="radio" name="webp" value="4" />4개</label>
+          </div>
+        </fieldset>
+        <fieldset id="durationSelect" class="inline" hidden>
+          <legend>길이</legend>
+          <label class="color-white"><input type="radio" name="duration" value="1.5" checked />1.5초</label>
+          <label class="color-white"><input type="radio" name="duration" value="3" />3초</label>
+          <label class="color-white"><input type="radio" name="duration" value="5" />5초</label>
+          <label class="color-white"><input type="radio" name="duration" value="7" />7초</label>
+        </fieldset>
+        <fieldset id="webpGifSelect" class="inline" hidden>
+          <legend>포맷</legend>
+          <label class="color-white"><input type="radio" name="webpGif" value="webp" checked />WebP</label>
+          <label class="color-white"><input type="radio" name="webpGif" value="gif" />gif</label>
+        </fieldset>
+        <fieldset id="columnSelect">
+          <legend>PC 화면</legend>
+          <label class="color-white"><input type="radio" name="column" value="2" checked />2개씩 보기</label>
+          <label class="color-white"><input type="radio" name="column" value="3" />3개씩 보기</label>
+        </fieldset>
+      </form>
     </div>
     <div id="pick"><button type="button" id="run">뽑기</button></div>
     <div id="sliderSelect" class="center">
-        <img id="sliderImage">
-        <div id="slider">
-            <button type="button" id="prev">-1</button>
-            <input type="range" min="1" value="1">
-            <button type="button" id="next">+1</button>
+      <img id="sliderImage" />
+      <div id="slider">
+        <button type="button" id="prev">-1</button>
+        <input type="range" min="1" value="1" />
+        <button type="button" id="next">+1</button>
+      </div>
+      <div id="slider_control">
+        <button type="button" id="backward">◀</button>
+        <div id="slider_input">
+          <button type="button" id="down_1000">←1000</button>
+          <input type="number" id="goto" min="1" max="99999" placeholder="입력" />
+          <button type="button" id="up_1000">1000→</button>
         </div>
-        <div id="slider_control">
-            <button type="button" id="backward">◀</button>
-            <div id="slider_input">
-                <button type="button" id="down_1000">←1000</button>
-                <input type="number" id="goto" min="1" max="99999" placeholder="입력">
-                <button type="button" id="up_1000">1000→</button>
-            </div>
-            <button type="button" id="forward">▶</button>
-        </div>
-        <div id="slider_webp">
-            <button type="button" id="run_webp">움짤</button>
-            <p></p>
-        </div>
+        <button type="button" id="forward">▶</button>
+      </div>
+      <div id="slider_webp">
+        <button type="button" id="run_webp">움짤</button>
+        <p></p>
+      </div>
     </div>
     <div id="result" class="center"></div>
     <div id="share" class="center">
-        <button type="button" id="sourceBtn">소스 퍼가기</button>
-        <textarea id="source"></textarea>
+      <button type="button" id="sourceBtn">소스 퍼가기</button>
+      <textarea id="source"></textarea>
     </div>
     <template id="movieCheckboxTemplate">
-        <label class="color-white">
-            <input type="checkbox" value="">
-            movie title
-        </label>
+      <label class="color-white">
+        <input type="checkbox" value="" />
+        movie title
+      </label>
     </template>
     <template id="shareTemplate">
-        <div>
-            <p><img src="" style="max-width: 100%;"></p>
-            <p>movie title</p>
-            <p>&nbsp;</p>
-        </div>
+      <div>
+        <p><img src="" style="max-width: 100%" /></p>
+        <p>movie title</p>
+        <p>&nbsp;</p>
+      </div>
     </template>
     <template id="itemTemplate">
-        <figure class="item">
-            <img>
-            <progress value="" max="" hidden></progress>
-            <figcaption class="shadow-white bold"></figcaption>
-        </figure>
+      <figure class="item">
+        <img />
+        <progress value="" max="" hidden></progress>
+        <figcaption class="shadow-white bold"></figcaption>
+      </figure>
     </template>
     <script type="text/javascript" src="main.js"></script>
-</body>
+  </body>
 </html>
