@@ -6,9 +6,6 @@ const movieCheckbox = document.querySelector("#movieCheckbox");
 const runButton = document.querySelector("#run");
 const result = document.querySelector("#result");
 const cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli";
-const protocol = new URL(document.URL).protocol;
-const decoder = new TextDecoder();
-const encoder = new TextEncoder();
 const fps = 12;
 const webpWidth = 720;
 const gifWidth = 360;
@@ -373,7 +370,10 @@ async function getWebp(params, item) {
   }
 
   ffmpeg.setProgress((progress) => {
-    caption.textContent = `${progress.ratio * 100}% / ${progress.duration}s`;
+    if (progress.duration) {
+      return;
+    }
+    caption.textContent = `${(progress.ratio * 100).toFixed(1)}% / ${progress.time?.toFixed(2) || 0}s`;
     bar.value = bar.max / 2 + Math.round((bar.max / 2) * progress.ratio);
   });
   // ffmpeg.setLogger((log) => {
@@ -381,15 +381,25 @@ async function getWebp(params, item) {
   // });
 
   const lastCut = cut + duration - 1;
-  const outputName = `${trimName}_${cut.toString().padStart(5, "0")}-${lastCut.toString().padStart(5, "0")}.${webpGif}`;
+  let outputName = `${trimName}_${cut.toString().padStart(5, "0")}-${lastCut.toString().padStart(5, "0")}.${webpGif}`;
+  outputName = encodeURIComponent(outputName);
 
   ffmpeg.FS("mkdir", time);
+  let downloadPromises = [];
+  let downloadCount = 0;
   for (let i = 0; i < duration; i++) {
     let filename = `${(cut + i).toString().padStart(5, "0")}.jpg`;
 
-    ffmpeg.FS("writeFile", `${time}/${filename}`, `${cloud}/${title}/${filename}`);
-    caption.textContent = `${i + 1}/${duration} 다운로드`;
-    bar.value += 1;
+    downloadPromises.push(
+      new Promise((resolve) => {
+        fetchFile(`${cloud}/${title}/${filename}`).then((file) => {
+          ffmpeg.FS("writeFile", `${time}/${filename}`, file);
+          caption.textContent = `${++downloadCount}/${duration} 다운로드`;
+          bar.value += 1;
+          resolve();
+        });
+      })
+    );
   }
 
   const command =
@@ -397,6 +407,7 @@ async function getWebp(params, item) {
       ? ["-vf", `scale=${webpWidth}:-1`, "-loop", "0", "-preset", "drawing", "-qscale", "90"]
       : ["-lavfi", `split[a][b];[a]scale=${gifWidth}:-1,palettegen[p];[b]scale=${gifWidth}:-1[g];[g][p]paletteuse`];
 
+  await Promise.all(downloadPromises);
   await ffmpeg.run(
     "-framerate",
     "12",
@@ -405,11 +416,23 @@ async function getWebp(params, item) {
     "-i",
     `${time}/*.jpg`,
     ...command,
-    `"${time}/${outputName}"`
+    `${time}/${outputName}` //output에서 utf-8 지원 안됨(FS는 가능)
   );
 
-  const output = ffmpeg.FS("readFile", `"${time}/${outputName}"`);
-  img.src = URL.createObjectURL(new Blob([output.buffer], { type: `image/${webpGif}` }));
+  const output = ffmpeg.FS("readFile", `${time}/${outputName}`);
+  const blob = new Blob([output.buffer], { type: `image/${webpGif}` });
+  img.src = URL.createObjectURL(blob);
+
+  let size = blob.size / 1024;
+  if (size > 1000) {
+    size /= 1024;
+    size = `${size.toFixed(1)}MB`;
+  } else {
+    size = `${size.toFixed(1)}KB`;
+  }
+
+  caption.textContent = size;
+  bar.hidden = true;
 
   for (let i = 0; i < duration; i++) {
     let filename = `${(cut + i).toString().padStart(5, "0")}.jpg`;
@@ -418,6 +441,7 @@ async function getWebp(params, item) {
   }
   ffmpeg.FS("unlink", `${time}/${outputName}`);
   ffmpeg.FS("rmdir", time);
+  ffmpeg.exit();
 
   if (!img.dataset.name) {
     img.addEventListener("click", (event) => {
@@ -428,7 +452,7 @@ async function getWebp(params, item) {
     });
   }
 
-  img.dataset.name = outputName;
+  img.dataset.name = decodeURIComponent(outputName);
 }
 
 window.addEventListener("error", (event) => {

@@ -21,13 +21,13 @@ if (typeof window === "undefined") {
       return;
     }
 
+    let corsRequest;
     if (event.request.mode === "no-cors") {
-      event.request.mode = "cors";
-      console.log("mode: ", event.request.mode);
+      corsRequest = new Request(event.request.url, { mode: "cors" });
     }
 
     event.respondWith(
-      fetch(event.request)
+      fetch(corsRequest || event.request)
         .then((response) => {
           if (response.status === 0) {
             return response;
