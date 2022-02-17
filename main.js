@@ -159,11 +159,7 @@ slider.addEventListener("change", (event) => {
   } else {
     let cut = event.target.value;
     sliderSelect.querySelector("#goto").value = parseInt(cut);
-
-    let requestURL = `${cloud}/${allList[movie].name}/${cut.padStart(5, "0")}.jpg`;
-    fetch(requestURL).then(() => {
-      sliderImage.src = requestURL;
-    });
+    sliderImage.src = `${cloud}/${allList[movie].name}/${cut.padStart(5, "0")}.jpg`;
   }
 });
 sliderSelect.querySelector("button#prev").addEventListener("click", () => {
@@ -275,12 +271,7 @@ runButton.addEventListener("click", () => {
       cut = getRandomInt(1, title.cut + 1)
         .toString()
         .padStart(5, "0");
-      let requestURL = `${cloud}/${title.name}/${cut}.jpg`;
-
-      //Access-Control-Allow-Origin 헤더를 추가하기 위함. image.src로 먼저 로드하면 cors 헤더가 추가되지 않은 상태로 캐싱됨.
-      fetch(requestURL).then(() => {
-        image.src = requestURL;
-      });
+      image.src = `${cloud}/${title.name}/${cut}.jpg`;
     } else if (format == "webp") {
       cut = getRandomInt(1, title.cut + 1 - duration);
 
@@ -370,9 +361,10 @@ async function getWebp(params, item) {
   }
 
   ffmpeg.setProgress((progress) => {
-    if (progress.duration) {
+    if (progress.duration || progress.ratio === Infinity) {
       return;
     }
+
     caption.textContent = `${(progress.ratio * 100).toFixed(1)}% / ${progress.time?.toFixed(2) || 0}s`;
     bar.value = bar.max / 2 + Math.round((bar.max / 2) * progress.ratio);
   });
