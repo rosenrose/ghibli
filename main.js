@@ -1,16 +1,18 @@
-userSelect = new Set();
-(allList = []), (promises = []);
-movieList = document.querySelector("#movieList");
-movieCheckbox = document.querySelector("#movieCheckbox");
-runButton = document.querySelector("#run");
-result = document.querySelector("#result");
-cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli";
-protocol = new URL(document.URL).protocol;
-decoder = new TextDecoder();
-encoder = new TextEncoder();
-const serverResponseWait = 1000;
-const webpResponseWait = 1000 * 60;
+const userSelect = new Set();
+const allList = [];
+const promises = [];
+const movieList = document.querySelector("#movieList");
+const movieCheckbox = document.querySelector("#movieCheckbox");
+const runButton = document.querySelector("#run");
+const result = document.querySelector("#result");
+const cloud = "https://d2wwh0934dzo2k.cloudfront.net/ghibli";
+const protocol = new URL(document.URL).protocol;
+const decoder = new TextDecoder();
+const encoder = new TextEncoder();
 const fps = 12;
+const webpWidth = 720;
+const gifWidth = 360;
+const { createFFmpeg, fetchFile } = FFmpeg;
 
 fetch("list.json")
   .then((response) => response.json())
@@ -87,35 +89,8 @@ document.querySelector("#formatSelect").addEventListener("change", (event) => {
     [...document.querySelectorAll("#webpNum input")]
       .find((radio) => radio.checked)
       .dispatchEvent(new InputEvent("change", { bubbles: true }));
-    let test = "";
-    fetch(`${protocol}//d2pty0y05env0k.cloudfront.net/`, { method: "POST" })
-      .then((response) => response.text())
-      .then((response) => {
-        test = response;
-      });
-    setTimeout(() => {
-      if (!test) {
-        runButton.disabled = true;
-        runButton.textContent = "오전 12:00 ~ 오전 08:00 움짤서버 중지";
-        rulePC.style["font-size"] = "3em";
-        ruleMobile.style["font-size"] = "2em";
-      }
-    }, serverResponseWait);
   } else if (format == "slider") {
     movieSelect[0].click();
-    let test = "";
-    fetch(`${protocol}//d2pty0y05env0k.cloudfront.net/`, { method: "POST" })
-      .then((response) => response.text())
-      .then((response) => {
-        test = response;
-      });
-    setTimeout(() => {
-      if (!test) {
-        let webp = document.querySelector("#run_webp");
-        webp.disabled = true;
-        webp.textContent = "오전 12:00 ~ 오전 08:00 움짤서버 중지";
-      }
-    }, serverResponseWait);
   }
 });
 
@@ -187,7 +162,11 @@ slider.addEventListener("change", (event) => {
   } else {
     let cut = event.target.value;
     sliderSelect.querySelector("#goto").value = parseInt(cut);
-    sliderImage.src = `${cloud}/${allList[movie].name}/${cut.padStart(5, "0")}.jpg`;
+
+    let requestURL = `${cloud}/${allList[movie].name}/${cut.padStart(5, "0")}.jpg`;
+    fetch(requestURL).then(() => {
+      sliderImage.src = requestURL;
+    });
   }
 });
 sliderSelect.querySelector("button#prev").addEventListener("click", () => {
@@ -271,7 +250,7 @@ rub_webp.addEventListener("click", () => {
 
     getWebp(
       {
-        time: Date.now(),
+        time: Date.now().toString(),
         title: title.name,
         cut,
         duration: lastCut - cut + 1,
@@ -299,13 +278,18 @@ runButton.addEventListener("click", () => {
       cut = getRandomInt(1, title.cut + 1)
         .toString()
         .padStart(5, "0");
-      image.src = `${cloud}/${title.name}/${cut}.jpg`;
+      let requestURL = `${cloud}/${title.name}/${cut}.jpg`;
+
+      //Access-Control-Allow-Origin 헤더를 추가하기 위함. image.src로 먼저 로드하면 cors 헤더가 추가되지 않은 상태로 캐싱됨.
+      fetch(requestURL).then(() => {
+        image.src = requestURL;
+      });
     } else if (format == "webp") {
       cut = getRandomInt(1, title.cut + 1 - duration);
 
       getWebp(
         {
-          time: Date.now() + i,
+          time: (Date.now() + i).toString(),
           title: title.name,
           cut,
           duration,
@@ -370,12 +354,15 @@ document.querySelectorAll("input[checked], select").forEach((input) => {
   input.dispatchEvent(new InputEvent("change", { bubbles: true }));
 });
 
-function getWebp(params, item) {
-  let img = item.querySelector("img");
-  let caption = item.querySelector("figcaption");
-  let bar = item.querySelector("progress");
+async function getWebp(params, item) {
+  const ffmpeg = createFFmpeg({ log: false });
+  await ffmpeg.load();
+  const { time, title, cut, duration, trimName, webpGif } = params;
+  const img = item.querySelector("img");
+  const caption = item.querySelector("figcaption");
+  const bar = item.querySelector("progress");
 
-  caption.textContent = `0/${params.duration} 다운로드`;
+  caption.textContent = `0/${duration} 다운로드`;
   bar.max = duration * 2;
   bar.value = 0;
   bar.hidden = false;
@@ -385,126 +372,63 @@ function getWebp(params, item) {
     img.src = "";
   }
 
-  let timeout = setTimeout(() => {
-    if (!img.src) {
-      throw new Error("응답시간 초과");
-    }
-  }, webpResponseWait);
+  ffmpeg.setProgress((progress) => {
+    caption.textContent = `${progress.ratio * 100}% / ${progress.duration}s`;
+    bar.value = bar.max / 2 + Math.round((bar.max / 2) * progress.ratio);
+  });
+  // ffmpeg.setLogger((log) => {
+  //   caption.textContent = log.message.split("=");
+  // });
 
-  try {
-    // fetch(`http://ec2-15-165-219-179.ap-northeast-2.compute.amazonaws.com:5000/webp`, {
-    fetch(`${protocol}//d2pty0y05env0k.cloudfront.net/webp`, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams(params),
-    })
-      .then(async (response) => {
-        let reader = response.body.getReader();
-        let chunks = [];
-        let progress, boundary, filename, size, current, contentType;
-        let count = 0;
-        let isFile = false;
+  const lastCut = cut + duration - 1;
+  const outputName = `${trimName}_${cut.toString().padStart(5, "0")}-${lastCut.toString().padStart(5, "0")}.${webpGif}`;
 
-        while (true) {
-          let { value, done } = await reader.read();
+  ffmpeg.FS("mkdir", time);
+  for (let i = 0; i < duration; i++) {
+    let filename = `${(cut + i).toString().padStart(5, "0")}.jpg`;
 
-          if (done) {
-            break;
-          }
-
-          // console.log(filename+"\n", decoder.decode(value));
-          if (isFile) {
-            chunks = [...chunks, ...value];
-            current = chunks.length / 1024;
-
-            if (size.includes("MB")) {
-              current /= 1024;
-              current = `${current.toFixed(1)}MB`;
-            } else {
-              current = `${current.toFixed(1)}KB`;
-            }
-
-            caption.textContent = `${size} / ${current} 전송`;
-          } else {
-            progress = decoder.decode(value);
-            // console.log(filename+"\n", progress);
-            if (!boundary) {
-              [boundary, , , filename] = progress.split("\r\n");
-            }
-
-            progress
-              .split(boundary)
-              .filter((p) => p.length)
-              .forEach((prog) => {
-                // console.log(filename+"\n", prog.split("\r\n"))
-                let [, key, type, val] = prog.split("\r\n");
-                key = key.match(/name="(.+?)"/)[1];
-
-                if (key == "download") {
-                  caption.textContent = `${++count}/${params.duration} 다운로드`;
-                  bar.value += 1;
-                } else if (key == "progress") {
-                  let status = val.split("\n");
-                  caption.textContent = [status[0], status[1], status[7], status[10]].join(" ");
-
-                  let frame = parseInt(status[0].split("=")[1]);
-                  bar.value = bar.max / 2 + frame;
-
-                  if (status[11] == "progress=end") {
-                    size = parseInt(status[4].split("=")[1]);
-                    size /= 1024;
-
-                    if (size > 1000) {
-                      size /= 1024;
-                      size = `${size.toFixed(1)}MB`;
-                    } else {
-                      size = `${size.toFixed(1)}KB`;
-                    }
-                  }
-                } else if (type) {
-                  let textEnd = progress.lastIndexOf(type) + (type + "\r\n\r\n").length;
-                  let binaryStart = encoder.encode(progress.slice(0, textEnd)).length;
-
-                  chunks = [...chunks, ...value.slice(binaryStart)];
-                  isFile = true;
-                  contentType = type.slice("Content-Type: ".length);
-                }
-              });
-          }
-        }
-        caption.textContent = size;
-        bar.hidden = true;
-
-        chunks = new Uint8Array(chunks);
-        blob = new Blob([chunks], { type: contentType });
-        img.src = URL.createObjectURL(blob);
-
-        if (!img.dataset.name) {
-          img.addEventListener("click", (event) => {
-            let name = event.target.dataset.name;
-            if (name) {
-              saveAs(event.target.src, name);
-            }
-          });
-        }
-
-        img.dataset.name = filename;
-        clearTimeout(timeout);
-      })
-      .catch((err) => {
-        console.error("promise", err);
-        caption.textContent = "전송 실패";
-        bar.hidden = true;
-        resetRunButton();
-        clearTimeout(timeout);
-      });
-  } catch (err) {
-    console.error("fetch", err);
-    caption.textContent = "연결 실패";
-    bar.hidden = true;
-    resetRunButton();
-    clearTimeout(timeout);
+    ffmpeg.FS("writeFile", `${time}/${filename}`, `${cloud}/${title}/${filename}`);
+    caption.textContent = `${i + 1}/${duration} 다운로드`;
+    bar.value += 1;
   }
+
+  const command =
+    webpGif === "webp"
+      ? ["-vf", `scale=${webpWidth}:-1`, "-loop", "0", "-preset", "drawing", "-qscale", "90"]
+      : ["-lavfi", `split[a][b];[a]scale=${gifWidth}:-1,palettegen[p];[b]scale=${gifWidth}:-1[g];[g][p]paletteuse`];
+
+  await ffmpeg.run(
+    "-framerate",
+    "12",
+    "-pattern_type",
+    "glob",
+    "-i",
+    `${time}/*.jpg`,
+    ...command,
+    `"${time}/${outputName}"`
+  );
+
+  const output = ffmpeg.FS("readFile", `"${time}/${outputName}"`);
+  img.src = URL.createObjectURL(new Blob([output.buffer], { type: `image/${webpGif}` }));
+
+  for (let i = 0; i < duration; i++) {
+    let filename = `${(cut + i).toString().padStart(5, "0")}.jpg`;
+
+    ffmpeg.FS("unlink", `${time}/${filename}`);
+  }
+  ffmpeg.FS("unlink", `${time}/${outputName}`);
+  ffmpeg.FS("rmdir", time);
+
+  if (!img.dataset.name) {
+    img.addEventListener("click", (event) => {
+      let name = event.target.dataset.name;
+      if (name) {
+        saveAs(event.target.src, name);
+      }
+    });
+  }
+
+  img.dataset.name = outputName;
 }
 
 window.addEventListener("error", (event) => {
