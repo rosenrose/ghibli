@@ -251,6 +251,9 @@ rub_webp.addEventListener("click", () => {
         trimName,
         webpGif,
         requestTo: "browser",
+        cloud,
+        webpWidth,
+        gifWidth,
       },
       webpItem
     );
@@ -285,6 +288,9 @@ runButton.addEventListener("click", () => {
           trimName,
           webpGif,
           requestTo: i == 0 ? "browser" : "server",
+          cloud,
+          webpWidth,
+          gifWidth,
         },
         items[i]
       );
@@ -345,7 +351,7 @@ document.querySelectorAll("input[checked], select").forEach((input) => {
 });
 
 async function getWebp(params, item) {
-  const { time, title, cut, duration, trimName, webpGif, requestTo } = params;
+  const { time, title, cut, duration, trimName, webpGif, requestTo, cloud, webpWidth, gifWidth } = params;
   const img = item.querySelector("img");
   const caption = item.querySelector("figcaption");
   const bar = item.querySelector("progress");
@@ -367,32 +373,28 @@ async function getWebp(params, item) {
   if (requestTo == "browser") {
     if (!ffmpeg.isLoaded()) {
       await ffmpeg.load();
+      ffmpeg.FS("mkdir", "webp");
     }
-
     ffmpeg.setProgress((progress) => {
-      if (progress.duration) {
-        return;
-      }
-
-      caption.textContent = `${(progress.ratio * 100).toFixed(1)}% / ${progress.time?.toFixed(2) || 0}s`;
-      bar.value = bar.max / 2 + Math.round((bar.max / 2) * progress.ratio);
+      // console.log("browser", progress);
+      showProgress(caption, bar, progress);
     });
     // ffmpeg.setLogger((log) => {
     //   caption.textContent = log.message.split("=");
     // });
 
-    ffmpeg.FS("mkdir", time);
+    ffmpeg.FS("mkdir", `webp/${time}`);
     const downloadPromises = [];
-    let downloadCount = 0;
+    let downloadCount = 1;
+
     for (let i = 0; i < duration; i++) {
       const filename = `${(cut + i).toString().padStart(5, "0")}.jpg`;
 
       downloadPromises.push(
         new Promise((resolve) => {
           fetchFile(`${cloud}/${title}/${filename}`).then((file) => {
-            ffmpeg.FS("writeFile", `${time}/${filename}`, file);
-            caption.textContent = `${++downloadCount}/${duration} 다운로드`;
-            bar.value += 1;
+            ffmpeg.FS("writeFile", `webp/${time}/${filename}`, file);
+            showDownload(caption, bar, duration, downloadCount++);
             resolve();
           });
         })
@@ -411,31 +413,48 @@ async function getWebp(params, item) {
       "-pattern_type",
       "glob",
       "-i",
-      `${time}/*.jpg`,
+      `webp/${time}/*.jpg`,
       ...command,
-      `${time}/${outputName}` //output에서 utf-8 지원 안됨(FS는 가능)
+      `webp/${time}/output.${webpGif}` //output에서 utf-8 지원 안됨(FS는 가능)
     );
 
-    const output = ffmpeg.FS("readFile", `${time}/${outputName}`);
-    const blob = new Blob([output.buffer], { type: `image/${webpGif}` });
-    createWebp({ blob, img, caption, bar, outputName });
-
-    for (let i = 0; i < duration; i++) {
-      const filename = `${(cut + i).toString().padStart(5, "0")}.jpg`;
-      ffmpeg.FS("unlink", `${time}/${filename}`);
-    }
-    ffmpeg.FS("unlink", `${time}/${outputName}`);
-    ffmpeg.FS("rmdir", time);
+    const output = ffmpeg.FS("readFile", `webp/${time}/output.${webpGif}`);
+    createWebp({ buffer: output.buffer, img, caption, bar, webpGif, outputName });
+    clear_ffmpeg(ffmpeg);
   } else if (requestTo == "server") {
     const socket = io("wss://rosenrose-ghibli-webp.herokuapp.com/");
-    socket.emit("webp", params, (blob) => {
-      createWebp({ blob, img, caption, bar, outputName });
+    socket.on("load", () => {
+      socket.emit("webp", params, (buffer) => {
+        createWebp({ buffer, img, caption, bar, webpGif, outputName });
+        socket.disconnect();
+      });
+    });
+    socket.on("progress", (progress) => {
+      // console.log("server", progress);
+      showProgress(caption, bar, progress);
+    });
+    socket.on("download", (count) => {
+      showDownload(caption, bar, duration, count);
     });
   }
 }
 
+function showProgress(caption, bar, progress) {
+  if (!progress.ratio || !progress.time) {
+    return;
+  }
+  caption.textContent = `${(progress.ratio * 100).toFixed(1)}% / ${progress.time?.toFixed(2) || 0}s`;
+  bar.value = bar.max / 2 + Math.round((bar.max / 2) * progress.ratio);
+}
+
+function showDownload(caption, bar, duration, count) {
+  caption.textContent = `${count}/${duration} 다운로드`;
+  bar.value += 1;
+}
+
 function createWebp(props) {
-  const { blob, img, caption, bar, outputName } = props;
+  const { buffer, img, caption, bar, outputName } = props;
+  const blob = new Blob([buffer], { type: `image/${webpGif}` });
 
   img.src = URL.createObjectURL(blob);
 
@@ -462,8 +481,22 @@ function createWebp(props) {
   img.dataset.name = decodeURIComponent(outputName);
 }
 
+function clear_ffmpeg(ffmpeg) {
+  ffmpeg
+    .FS("readdir", "webp")
+    .filter((dir) => !dir.startsWith("."))
+    .forEach((dir) => {
+      ffmpeg
+        .FS("readdir", `webp/${dir}`)
+        .filter((file) => !file.startsWith("."))
+        .forEach((file) => {
+          ffmpeg.FS("unlink", `webp/${dir}/${file}`);
+        });
+      ffmpeg.FS("rmdir", `webp/${dir}`);
+    });
+}
+
 window.addEventListener("error", (event) => {
-  console.error("timeout", event.error);
   if (event.error.message == "응답시간 초과") {
     resetRunButton();
     document.querySelectorAll("progress").forEach((progress) => {
