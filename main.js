@@ -125,20 +125,6 @@ document.querySelector("#durationSelect").addEventListener("change", (event) => 
 });
 document.querySelector("#webpGifSelect").addEventListener("change", (event) => {
   webpGif = event.target.value;
-  let num4 = document.querySelector("#webpNum input[value='4']");
-  let duration7 = document.querySelector("#durationSelect input[value='7']");
-
-  toggleInput(num4, webpGif == "webp");
-  toggleInput(duration7, webpGif == "webp");
-
-  if (webpGif == "gif") {
-    if (num4.checked) {
-      num4.parentNode.previousElementSibling.click();
-    }
-    if (duration7.checked) {
-      duration7.parentNode.previousElementSibling.click();
-    }
-  }
 });
 document.querySelector("#columnSelect").addEventListener("change", (event) => {
   column = parseInt(event.target.value);
