@@ -22,7 +22,7 @@ if (typeof window === "undefined") {
     }
 
     let corsRequest;
-    if (event.request.mode === "no-cors") {
+    if (event.request.url.includes("d2wwh0934dzo2k.cloudfront.net") && event.request.mode === "no-cors") {
       corsRequest = new Request(event.request.url, { mode: "cors" });
     }
 

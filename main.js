@@ -10,6 +10,7 @@ const fps = 12;
 const webpWidth = 720;
 const gifWidth = 360;
 const { createFFmpeg, fetchFile } = FFmpeg;
+const ffmpeg = createFFmpeg({ log: false });
 
 fetch("list.json")
   .then((response) => response.json())
@@ -249,6 +250,7 @@ rub_webp.addEventListener("click", () => {
         duration: lastCut - cut + 1,
         trimName,
         webpGif,
+        requestTo: "browser",
       },
       webpItem
     );
@@ -274,7 +276,6 @@ runButton.addEventListener("click", () => {
       image.src = `${cloud}/${title.name}/${cut}.jpg`;
     } else if (format == "webp") {
       cut = getRandomInt(1, title.cut + 1 - duration);
-
       getWebp(
         {
           time: (Date.now() + i).toString(),
@@ -283,6 +284,7 @@ runButton.addEventListener("click", () => {
           duration,
           trimName,
           webpGif,
+          requestTo: i == 0 ? "browser" : "server",
         },
         items[i]
       );
@@ -343,9 +345,7 @@ document.querySelectorAll("input[checked], select").forEach((input) => {
 });
 
 async function getWebp(params, item) {
-  const ffmpeg = createFFmpeg({ log: false });
-  await ffmpeg.load();
-  const { time, title, cut, duration, trimName, webpGif } = params;
+  const { time, title, cut, duration, trimName, webpGif, requestTo } = params;
   const img = item.querySelector("img");
   const caption = item.querySelector("figcaption");
   const bar = item.querySelector("progress");
@@ -355,64 +355,88 @@ async function getWebp(params, item) {
   bar.value = 0;
   bar.hidden = false;
 
+  const lastCut = cut + duration - 1;
+  let outputName = `${trimName}_${cut.toString().padStart(5, "0")}-${lastCut.toString().padStart(5, "0")}.${webpGif}`;
+  outputName = encodeURIComponent(outputName);
+
   if (img.getAttribute("src")) {
     URL.revokeObjectURL(img.src);
     img.src = "";
   }
 
-  ffmpeg.setProgress((progress) => {
-    if (progress.duration || progress.ratio === Infinity) {
-      return;
+  if (requestTo == "browser") {
+    if (!ffmpeg.isLoaded()) {
+      await ffmpeg.load();
     }
 
-    caption.textContent = `${(progress.ratio * 100).toFixed(1)}% / ${progress.time?.toFixed(2) || 0}s`;
-    bar.value = bar.max / 2 + Math.round((bar.max / 2) * progress.ratio);
-  });
-  // ffmpeg.setLogger((log) => {
-  //   caption.textContent = log.message.split("=");
-  // });
+    ffmpeg.setProgress((progress) => {
+      if (progress.duration) {
+        return;
+      }
 
-  const lastCut = cut + duration - 1;
-  let outputName = `${trimName}_${cut.toString().padStart(5, "0")}-${lastCut.toString().padStart(5, "0")}.${webpGif}`;
-  outputName = encodeURIComponent(outputName);
+      caption.textContent = `${(progress.ratio * 100).toFixed(1)}% / ${progress.time?.toFixed(2) || 0}s`;
+      bar.value = bar.max / 2 + Math.round((bar.max / 2) * progress.ratio);
+    });
+    // ffmpeg.setLogger((log) => {
+    //   caption.textContent = log.message.split("=");
+    // });
 
-  ffmpeg.FS("mkdir", time);
-  let downloadPromises = [];
-  let downloadCount = 0;
-  for (let i = 0; i < duration; i++) {
-    let filename = `${(cut + i).toString().padStart(5, "0")}.jpg`;
+    ffmpeg.FS("mkdir", time);
+    const downloadPromises = [];
+    let downloadCount = 0;
+    for (let i = 0; i < duration; i++) {
+      const filename = `${(cut + i).toString().padStart(5, "0")}.jpg`;
 
-    downloadPromises.push(
-      new Promise((resolve) => {
-        fetchFile(`${cloud}/${title}/${filename}`).then((file) => {
-          ffmpeg.FS("writeFile", `${time}/${filename}`, file);
-          caption.textContent = `${++downloadCount}/${duration} 다운로드`;
-          bar.value += 1;
-          resolve();
-        });
-      })
+      downloadPromises.push(
+        new Promise((resolve) => {
+          fetchFile(`${cloud}/${title}/${filename}`).then((file) => {
+            ffmpeg.FS("writeFile", `${time}/${filename}`, file);
+            caption.textContent = `${++downloadCount}/${duration} 다운로드`;
+            bar.value += 1;
+            resolve();
+          });
+        })
+      );
+    }
+
+    const command =
+      webpGif === "webp"
+        ? ["-vf", `scale=${webpWidth}:-1`, "-loop", "0", "-preset", "drawing", "-qscale", "90"]
+        : ["-lavfi", `split[a][b];[a]scale=${gifWidth}:-1,palettegen[p];[b]scale=${gifWidth}:-1[g];[g][p]paletteuse`];
+
+    await Promise.all(downloadPromises);
+    await ffmpeg.run(
+      "-framerate",
+      "12",
+      "-pattern_type",
+      "glob",
+      "-i",
+      `${time}/*.jpg`,
+      ...command,
+      `${time}/${outputName}` //output에서 utf-8 지원 안됨(FS는 가능)
     );
+
+    const output = ffmpeg.FS("readFile", `${time}/${outputName}`);
+    const blob = new Blob([output.buffer], { type: `image/${webpGif}` });
+    createWebp({ blob, img, caption, bar, outputName });
+
+    for (let i = 0; i < duration; i++) {
+      const filename = `${(cut + i).toString().padStart(5, "0")}.jpg`;
+      ffmpeg.FS("unlink", `${time}/${filename}`);
+    }
+    ffmpeg.FS("unlink", `${time}/${outputName}`);
+    ffmpeg.FS("rmdir", time);
+  } else if (requestTo == "server") {
+    const socket = io("wss://rosenrose-ghibli-webp.herokuapp.com/");
+    socket.emit("webp", params, (blob) => {
+      createWebp({ blob, img, caption, bar, outputName });
+    });
   }
+}
 
-  const command =
-    webpGif === "webp"
-      ? ["-vf", `scale=${webpWidth}:-1`, "-loop", "0", "-preset", "drawing", "-qscale", "90"]
-      : ["-lavfi", `split[a][b];[a]scale=${gifWidth}:-1,palettegen[p];[b]scale=${gifWidth}:-1[g];[g][p]paletteuse`];
+function createWebp(props) {
+  const { blob, img, caption, bar, outputName } = props;
 
-  await Promise.all(downloadPromises);
-  await ffmpeg.run(
-    "-framerate",
-    "12",
-    "-pattern_type",
-    "glob",
-    "-i",
-    `${time}/*.jpg`,
-    ...command,
-    `${time}/${outputName}` //output에서 utf-8 지원 안됨(FS는 가능)
-  );
-
-  const output = ffmpeg.FS("readFile", `${time}/${outputName}`);
-  const blob = new Blob([output.buffer], { type: `image/${webpGif}` });
   img.src = URL.createObjectURL(blob);
 
   let size = blob.size / 1024;
@@ -425,15 +449,6 @@ async function getWebp(params, item) {
 
   caption.textContent = size;
   bar.hidden = true;
-
-  for (let i = 0; i < duration; i++) {
-    let filename = `${(cut + i).toString().padStart(5, "0")}.jpg`;
-
-    ffmpeg.FS("unlink", `${time}/${filename}`);
-  }
-  ffmpeg.FS("unlink", `${time}/${outputName}`);
-  ffmpeg.FS("rmdir", time);
-  ffmpeg.exit();
 
   if (!img.dataset.name) {
     img.addEventListener("click", (event) => {
