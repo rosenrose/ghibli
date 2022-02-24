@@ -409,8 +409,8 @@ async function getWebp(params, item) {
     clear_ffmpeg(ffmpeg);
   } else if (requestTo == "server") {
     const socket = io("wss://rosenrose-ghibli-webp.herokuapp.com/");
-    socket.on("load", () => {
-      socket.emit("webp", params, (buffer) => {
+    socket.on("ready", (i) => {
+      socket.emit("webp", i, params, (buffer) => {
         createWebp({ buffer, img, caption, bar, webpGif, outputName });
         socket.disconnect();
       });
