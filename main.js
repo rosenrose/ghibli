@@ -207,10 +207,12 @@ backwardBtn.addEventListener("click", (event) => {
 document.querySelector("#slider_webp").append(document.querySelector("#itemTemplate").content.cloneNode(true));
 let webpItem = document.querySelector("#slider_webp figure");
 webpItem.className = "";
-webpItem.querySelector("img").addEventListener("load", () => {
+webpItem.querySelector(".itemImg").addEventListener("load", () => {
   run_webp.textContent = "움짤";
   run_webp.disabled = false;
+  webpItem.querySelector(".loading").style.display = "none";
 });
+webpItem.querySelector(".loading").style.display = "none";
 
 let rub_webp = document.querySelector("#run_webp");
 rub_webp.addEventListener("click", () => {
@@ -219,6 +221,8 @@ rub_webp.addEventListener("click", () => {
   } else {
     run_webp.textContent = "로딩...";
     run_webp.disabled = true;
+    webpItem.querySelector(".loading").style.display = "";
+
     cut = parseInt(slider.value);
     let lastCut = cut + duration - 1;
     let max = parseInt(slider.max);
@@ -252,7 +256,7 @@ runButton.addEventListener("click", () => {
   let items = result.querySelectorAll(".item");
 
   for (let i = 0; i < (format == "jpg" ? jpgCount : webpCount); i++) {
-    let image = items[i].querySelector("img");
+    let [loading, image] = items[i].querySelectorAll("img");
     let caption = items[i].querySelector("figcaption");
     let title = getRandomMovie();
     let trimName = title.name.slice(3, title.name.indexOf("(")).trim();
@@ -283,7 +287,7 @@ runButton.addEventListener("click", () => {
     }
     promises.push(
       new Promise((resolve) => {
-        image.onload = function () {
+        image.onload = () => {
           if (
             (movieSelect == "list" && (movie == "ghibli" || (isNaN(movie) && list[movie].length > 1))) ||
             (movieSelect == "checkbox" && userSelect.size != 1)
@@ -292,6 +296,7 @@ runButton.addEventListener("click", () => {
           } else {
             caption.textContent = "";
           }
+          loading.style.display = "none";
           resolve();
         };
       })
@@ -310,7 +315,7 @@ document.querySelector("#sourceBtn").addEventListener("click", () => {
       let template = document.querySelector("#shareTemplate").content.cloneNode(true);
 
       let [p1, p2] = template.querySelectorAll("p");
-      p1.querySelector("img").src = item.querySelector("img").src;
+      p1.querySelector("img").src = item.querySelector(".itemImg").src;
       p2.textContent = item.querySelector("figcaption").textContent;
 
       return template.firstElementChild.innerHTML.trim().replace(/\n\s+/g, "\n");
@@ -338,7 +343,7 @@ document.querySelectorAll("input[checked], select").forEach((input) => {
 
 async function getWebp(params, item) {
   const { time, title, cut, duration, trimName, webpGif, requestTo, cloud, webpWidth, gifWidth } = params;
-  const img = item.querySelector("img");
+  const img = item.querySelector(".itemImg");
   const caption = item.querySelector("figcaption");
   const bar = item.querySelector("progress");
 
@@ -408,6 +413,19 @@ async function getWebp(params, item) {
     createWebp({ buffer: output.buffer, img, caption, bar, webpGif, outputName });
     clear_ffmpeg(ffmpeg);
   } else if (requestTo == "server") {
+    if (typeof io === "undefined") {
+      await new Promise((resolve) => {
+        const int = setInterval(() => {
+          if (typeof io !== "undefined") {
+            clearInterval(int);
+            resolve();
+            console.log("done");
+          } else {
+            console.log("wait");
+          }
+        });
+      });
+    }
     const socket = io("wss://rosenrose-ghibli-webp.herokuapp.com/");
     socket.on("ready", (i) => {
       socket.emit("webp", i, params, (buffer) => {

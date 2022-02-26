@@ -98,7 +98,12 @@ textarea {
   margin: 0.3em;
   width: 48%;
 }
-.item img {
+.item .loading {
+  display: block;
+  margin: 0 auto;
+  width: 20%;
+}
+.item .itemImg {
   width: 100%;
 }
 .item figcaption {
