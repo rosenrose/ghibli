@@ -12,6 +12,7 @@ const gifWidth = 360;
 const { createFFmpeg, fetchFile } = FFmpeg;
 const ffmpeg = createFFmpeg({ log: false });
 
+fetch("https://rosenrose-ghibli-webp.herokuapp.com");
 fetch("list.json")
   .then((response) => response.json())
   .then((json) => {
