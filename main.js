@@ -418,12 +418,11 @@ async function getWebp(params, item) {
     createWebp({ buffer: output.buffer, img, caption, bar, webpGif, outputName });
     clear_ffmpeg(ffmpeg);
   } else if (requestTo == "server") {
+    // const socket = io("ws://localhost:3000/");
     const socket = io("wss://rosenrose-ghibli-webp.herokuapp.com/");
-    socket.on("ready", (i) => {
-      socket.emit("webp", i, params, (buffer) => {
-        createWebp({ buffer, img, caption, bar, webpGif, outputName });
-        socket.disconnect();
-      });
+
+    socket.emit("webp", params, (buffer) => {
+      createWebp({ buffer: new Uint8Array(buffer), img, caption, bar, webpGif, outputName });
     });
     socket.on("progress", (progress) => {
       // console.log("server", progress);
@@ -436,11 +435,18 @@ async function getWebp(params, item) {
 }
 
 function showProgress(caption, bar, progress) {
-  if (!progress.ratio || !progress.time) {
-    return;
+  if ("frame" in progress) {
+    // const { frame, time, speed } = progress;
+    const frame = parseInt(progress.frame);
+    caption.textContent = `${((frame / (bar.max / 2)) * 100).toFixed(1)}% / frame=${frame}`;
+    bar.value = bar.max / 2 + parseInt(frame);
+  } else {
+    if (!progress.ratio || !progress.time) {
+      return;
+    }
+    caption.textContent = `${(progress.ratio * 100).toFixed(1)}% / ${progress.time?.toFixed(2) || 0}s`;
+    bar.value = bar.max / 2 + Math.round((bar.max / 2) * progress.ratio);
   }
-  caption.textContent = `${(progress.ratio * 100).toFixed(1)}% / ${progress.time?.toFixed(2) || 0}s`;
-  bar.value = bar.max / 2 + Math.round((bar.max / 2) * progress.ratio);
 }
 
 function showDownload(caption, bar, duration, count) {
