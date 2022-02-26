@@ -417,21 +417,6 @@ async function getWebp(params, item) {
     createWebp({ buffer: output.buffer, img, caption, bar, webpGif, outputName });
     clear_ffmpeg(ffmpeg);
   } else if (requestTo == "server") {
-    if (typeof io === "undefined") {
-      setTimeout(() => {
-        if (typeof io === "undefined") {
-          throw "응답시간 초과";
-        }
-      }, 60 * 1000);
-      await new Promise((resolve) => {
-        const int = setInterval(() => {
-          if (typeof io !== "undefined") {
-            clearInterval(int);
-            resolve();
-          }
-        });
-      });
-    }
     const socket = io("wss://rosenrose-ghibli-webp.herokuapp.com/");
     socket.on("ready", (i) => {
       socket.emit("webp", i, params, (buffer) => {
