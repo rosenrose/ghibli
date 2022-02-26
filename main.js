@@ -246,7 +246,9 @@ rub_webp.addEventListener("click", () => {
         gifWidth,
       },
       webpItem
-    );
+    ).catch((err) => {
+      webpItem.querySelector("figcaption").textContent = "전송 실패";
+    });
   }
 });
 
@@ -283,7 +285,9 @@ runButton.addEventListener("click", () => {
           gifWidth,
         },
         items[i]
-      );
+      ).catch((err) => {
+        caption.textContent = "전송 실패";
+      });
     }
     promises.push(
       new Promise((resolve) => {
@@ -414,14 +418,16 @@ async function getWebp(params, item) {
     clear_ffmpeg(ffmpeg);
   } else if (requestTo == "server") {
     if (typeof io === "undefined") {
+      setTimeout(() => {
+        if (typeof io === "undefined") {
+          throw "응답시간 초과";
+        }
+      }, 60 * 1000);
       await new Promise((resolve) => {
         const int = setInterval(() => {
           if (typeof io !== "undefined") {
             clearInterval(int);
             resolve();
-            console.log("done");
-          } else {
-            console.log("wait");
           }
         });
       });
