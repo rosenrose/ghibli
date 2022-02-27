@@ -280,7 +280,7 @@ runButton.addEventListener("click", () => {
           duration,
           trimName,
           webpGif,
-          requestTo: i == 0 ? "browser" : "server",
+          requestTo: "server",
           cloud,
           webpWidth,
           gifWidth,
