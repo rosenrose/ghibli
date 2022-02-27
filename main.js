@@ -372,7 +372,6 @@ async function getWebp(params, item) {
       ffmpeg.FS("mkdir", "webp");
     }
     ffmpeg.setProgress((progress) => {
-      // console.log("browser", progress);
       showProgress(caption, bar, progress);
     });
     // ffmpeg.setLogger((log) => {
@@ -403,26 +402,26 @@ async function getWebp(params, item) {
         : ["-lavfi", `split[a][b];[a]scale=${gifWidth}:-1,palettegen[p];[b]scale=${gifWidth}:-1[g];[g][p]paletteuse`];
 
     await Promise.all(downloadPromises);
+    //prettier-ignore
     await ffmpeg.run(
-      "-framerate",
-      "12",
-      "-pattern_type",
-      "glob",
-      "-i",
-      `webp/${time}/*.jpg`,
+      "-framerate", "12",
+      "-pattern_type", "glob",
+      "-i", `webp/${time}/*.jpg`,
       ...command,
       `webp/${time}/output.${webpGif}` //output에서 utf-8 지원 안됨(FS는 가능)
     );
 
     const output = ffmpeg.FS("readFile", `webp/${time}/output.${webpGif}`);
-    createWebp({ buffer: output.buffer, img, caption, bar, webpGif, outputName });
+    // console.log(output);
+    createWebp({ buffer: [output.buffer], img, caption, bar, webpGif, outputName });
     clear_ffmpeg(ffmpeg);
   } else if (requestTo == "server") {
     // const socket = io("ws://localhost:3000/");
     const socket = io("wss://rosenrose-ghibli-webp.herokuapp.com/");
+    let buffer = [];
 
-    socket.emit("webp", params, (buffer) => {
-      createWebp({ buffer: new Uint8Array(buffer), img, caption, bar, webpGif, outputName });
+    socket.emit("webp", params, () => {
+      createWebp({ buffer, img, caption, bar, webpGif, outputName });
     });
     socket.on("progress", (progress) => {
       // console.log("server", progress);
@@ -430,6 +429,10 @@ async function getWebp(params, item) {
     });
     socket.on("download", (count) => {
       showDownload(caption, bar, duration, count);
+    });
+    socket.on("transfer", (chunk) => {
+      // console.log(chunk);
+      buffer.push(chunk);
     });
   }
 }
@@ -456,7 +459,7 @@ function showDownload(caption, bar, duration, count) {
 
 function createWebp(props) {
   const { buffer, img, caption, bar, outputName } = props;
-  const blob = new Blob([buffer], { type: `image/${webpGif}` });
+  const blob = new Blob(buffer, { type: `image/${webpGif}` });
 
   img.src = URL.createObjectURL(blob);
 
