@@ -56,7 +56,13 @@ document.querySelector("#formatSelect").addEventListener("change", (event) => {
   let ruleMobile = getCSSRule("myCSS", "#run", "(max-width: 768px)");
 
   if (format != "slider") {
-    selectAttribute(`.${format}`, "hidden", false, true, ...document.querySelectorAll("#webpNum, #jpgNum"));
+    selectAttribute(
+      `.${format}`,
+      "hidden",
+      false,
+      true,
+      ...document.querySelectorAll("#webpNum, #jpgNum")
+    );
   }
   toggleAttribute(
     "style.display",
@@ -205,7 +211,9 @@ backwardBtn.addEventListener("click", (event) => {
   }
 });
 
-document.querySelector("#slider_webp").append(document.querySelector("#itemTemplate").content.cloneNode(true));
+document
+  .querySelector("#slider_webp")
+  .append(document.querySelector("#itemTemplate").content.cloneNode(true));
 let webpItem = document.querySelector("#slider_webp figure");
 webpItem.className = "";
 webpItem.querySelector(".itemImg").addEventListener("load", () => {
@@ -292,14 +300,16 @@ runButton.addEventListener("click", () => {
     }
     promises.push(
       new Promise((resolve) => {
-        image.onload = () => {
+        image.onload = (event) => {
           if (
-            (movieSelect == "list" && (movie == "ghibli" || (isNaN(movie) && list[movie].length > 1))) ||
+            (movieSelect == "list" &&
+              (movie == "ghibli" || (isNaN(movie) && list[movie].length > 1))) ||
             (movieSelect == "checkbox" && userSelect.size != 1)
           ) {
-            caption.textContent = format == "webp" ? `${trimName} (${caption.textContent})` : trimName;
+            caption.textContent =
+              format == "jpg" ? trimName : `${trimName} (${event.target.dataset.size})`;
           } else {
-            caption.textContent = "";
+            caption.textContent = format == "jpg" ? "" : event.target.dataset.size;
           }
           loading.style.display = "none";
           resolve();
@@ -347,7 +357,8 @@ document.querySelectorAll("input[checked], select").forEach((input) => {
 });
 
 async function getWebp(params, item) {
-  const { time, title, cut, duration, trimName, webpGif, requestTo, cloud, webpWidth, gifWidth } = params;
+  const { time, title, cut, duration, trimName, webpGif, requestTo, cloud, webpWidth, gifWidth } =
+    params;
   const img = item.querySelector(".itemImg");
   const caption = item.querySelector("figcaption");
   const bar = item.querySelector("progress");
@@ -358,7 +369,9 @@ async function getWebp(params, item) {
   bar.hidden = false;
 
   const lastCut = cut + duration - 1;
-  let outputName = `${trimName}_${cut.toString().padStart(5, "0")}-${lastCut.toString().padStart(5, "0")}.${webpGif}`;
+  let outputName = `${trimName}_${cut.toString().padStart(5, "0")}-${lastCut
+    .toString()
+    .padStart(5, "0")}.${webpGif}`;
   outputName = encodeURIComponent(outputName);
 
   if (img.getAttribute("src")) {
@@ -399,7 +412,10 @@ async function getWebp(params, item) {
     const command =
       webpGif === "webp"
         ? ["-vf", `scale=${webpWidth}:-1`, "-loop", "0", "-preset", "drawing", "-qscale", "90"]
-        : ["-lavfi", `split[a][b];[a]scale=${gifWidth}:-1,palettegen[p];[b]scale=${gifWidth}:-1[g];[g][p]paletteuse`];
+        : [
+            "-lavfi",
+            `split[a][b];[a]scale=${gifWidth}:-1,palettegen[p];[b]scale=${gifWidth}:-1[g];[g][p]paletteuse`,
+          ];
 
     await Promise.all(downloadPromises);
     //prettier-ignore
@@ -447,7 +463,9 @@ function showProgress(caption, bar, progress) {
     if (!progress.ratio || !progress.time) {
       return;
     }
-    caption.textContent = `${(progress.ratio * 100).toFixed(1)}% / ${progress.time?.toFixed(2) || 0}s`;
+    caption.textContent = `${(progress.ratio * 100).toFixed(1)}% / ${
+      progress.time?.toFixed(2) || 0
+    }s`;
     bar.value = bar.max / 2 + Math.round((bar.max / 2) * progress.ratio);
   }
 }
@@ -458,7 +476,7 @@ function showDownload(caption, bar, duration, count) {
 }
 
 function createWebp(props) {
-  const { buffer, img, caption, bar, outputName } = props;
+  const { buffer, img, bar, outputName } = props;
   const blob = new Blob(buffer, { type: `image/${webpGif}` });
 
   img.src = URL.createObjectURL(blob);
@@ -471,7 +489,7 @@ function createWebp(props) {
     size = `${size.toFixed(1)}KB`;
   }
 
-  caption.textContent = size;
+  img.dataset.size = size;
   bar.hidden = true;
 
   if (!img.dataset.name) {

@@ -12,7 +12,10 @@
       crossorigin="anonymous"
     ></script>
     <script src="coi-serviceworker.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.10.0/dist/ffmpeg.min.js" crossorigin></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.10.0/dist/ffmpeg.min.js"
+      crossorigin
+    ></script>
   </head>
   <body>
     <h1 class="center color-white">지브리 짤 생성기</h1>
@@ -20,14 +23,24 @@
       <form id="select">
         <fieldset id="formatSelect">
           <legend>형식</legend>
-          <label class="color-white"><input type="radio" name="format" value="jpg" checked />랜덤짤</label>
-          <label class="color-white"><input type="radio" name="format" value="webp" />랜덤움짤</label>
-          <label class="color-white"><input type="radio" name="format" value="slider" />장면 선택</label>
+          <label class="color-white"
+            ><input type="radio" name="format" value="jpg" checked />랜덤짤</label
+          >
+          <label class="color-white"
+            ><input type="radio" name="format" value="webp" />랜덤움짤</label
+          >
+          <label class="color-white"
+            ><input type="radio" name="format" value="slider" />장면 선택</label
+          >
         </fieldset>
         <fieldset id="movieSelect">
           <legend>작품</legend>
-          <label class="color-white"><input type="radio" name="movie" value="list" checked />목록</label>
-          <label class="color-white"><input type="radio" name="movie" value="checkbox" />직접 선택</label>
+          <label class="color-white"
+            ><input type="radio" name="movie" value="list" checked />목록</label
+          >
+          <label class="color-white"
+            ><input type="radio" name="movie" value="checkbox" />직접 선택</label
+          >
           <select id="movieList" class="list">
             <option value="ghibli">----- 지브리 작품 모두 -----</option>
             <option value="long" selected>----- 장편 -----</option>
@@ -102,13 +115,17 @@
         <fieldset id="countSelect">
           <legend>개수</legend>
           <div id="jpgNum" class="jpg">
-            <label class="color-white jpg"><input type="radio" name="jpg" value="6" checked />6개</label>
+            <label class="color-white jpg"
+              ><input type="radio" name="jpg" value="6" checked />6개</label
+            >
             <label class="color-white jpg"><input type="radio" name="jpg" value="12" />12개</label>
             <label class="color-white jpg"><input type="radio" name="jpg" value="24" />24개</label>
             <label class="color-white jpg"><input type="radio" name="jpg" value="36" />36개</label>
           </div>
           <div id="webpNum" class="webp" hidden>
-            <label class="color-white webp"><input type="radio" name="webp" value="1" checked />1개</label>
+            <label class="color-white webp"
+              ><input type="radio" name="webp" value="1" checked />1개</label
+            >
             <label class="color-white webp"><input type="radio" name="webp" value="2" />2개</label>
             <label class="color-white webp"><input type="radio" name="webp" value="3" />3개</label>
             <label class="color-white webp"><input type="radio" name="webp" value="4" />4개</label>
@@ -116,20 +133,28 @@
         </fieldset>
         <fieldset id="durationSelect" class="inline" hidden>
           <legend>길이</legend>
-          <label class="color-white"><input type="radio" name="duration" value="1.5" checked />1.5초</label>
+          <label class="color-white"
+            ><input type="radio" name="duration" value="1.5" checked />1.5초</label
+          >
           <label class="color-white"><input type="radio" name="duration" value="3" />3초</label>
           <label class="color-white"><input type="radio" name="duration" value="5" />5초</label>
           <label class="color-white"><input type="radio" name="duration" value="7" />7초</label>
         </fieldset>
         <fieldset id="webpGifSelect" class="inline" hidden>
           <legend>포맷</legend>
-          <label class="color-white"><input type="radio" name="webpGif" value="webp" checked />WebP</label>
+          <label class="color-white"
+            ><input type="radio" name="webpGif" value="webp" checked />WebP</label
+          >
           <label class="color-white"><input type="radio" name="webpGif" value="gif" />gif</label>
         </fieldset>
         <fieldset id="columnSelect">
           <legend>PC 화면</legend>
-          <label class="color-white"><input type="radio" name="column" value="2" checked />2개씩 보기</label>
-          <label class="color-white"><input type="radio" name="column" value="3" />3개씩 보기</label>
+          <label class="color-white"
+            ><input type="radio" name="column" value="2" checked />2개씩 보기</label
+          >
+          <label class="color-white"
+            ><input type="radio" name="column" value="3" />3개씩 보기</label
+          >
         </fieldset>
       </form>
     </div>
