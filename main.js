@@ -375,6 +375,7 @@ async function getWebp(params, item) {
   outputName = encodeURIComponent(outputName);
 
   if (img.getAttribute("src")) {
+    // 장면 선택 모드
     URL.revokeObjectURL(img.src);
     img.src = "";
   }
@@ -578,7 +579,7 @@ function toggleRunButton() {
 }
 
 function clear() {
-  result.querySelectorAll("img[data-name]").forEach((img) => {
+  result.querySelectorAll(".itemImg").forEach((img) => {
     URL.revokeObjectURL(img.src);
   });
   result.replaceChildren();
