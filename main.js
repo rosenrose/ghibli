@@ -374,11 +374,8 @@ async function getWebp(params, item) {
     .padStart(5, "0")}.${webpGif}`;
   outputName = encodeURIComponent(outputName);
 
-  if (img.getAttribute("src")) {
-    // 장면 선택 모드
-    URL.revokeObjectURL(img.src);
-    img.src = "";
-  }
+  URL.revokeObjectURL(img?.src); // 장면 선택 모드
+  img.src = "";
 
   if (requestTo == "browser") {
     if (!ffmpeg.isLoaded()) {
