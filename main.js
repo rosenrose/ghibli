@@ -11,8 +11,9 @@ const webpWidth = 720;
 const gifWidth = 360;
 const { createFFmpeg, fetchFile } = FFmpeg;
 const ffmpeg = createFFmpeg({ log: false });
+const padLength = 5;
 
-fetch("https://rosenrose-ghibli-webp.herokuapp.com");
+fetch("https://webp-cloudrun-osuiaeahvq-an.a.run.app/");
 fetch("list.json")
   .then((response) => response.json())
   .then((json) => {
@@ -67,7 +68,7 @@ document.querySelector("#formatSelect").addEventListener("change", (event) => {
   toggleAttribute(
     "style.display",
     format == "jpg" ? "none" : "",
-    ...document.querySelectorAll("#durationSelect, #webpGifSelect")
+    ...document.querySelectorAll("#durationSelect, #webpFormatSelect")
   );
   document.querySelector("#share").hidden = format != "jpg";
   document.querySelector("#sliderSelect").hidden = format != "slider";
@@ -130,8 +131,8 @@ document.querySelector("#webpNum").addEventListener("change", (event) => {
 document.querySelector("#durationSelect").addEventListener("change", (event) => {
   duration = parseInt(Number(event.target.value) * fps);
 });
-document.querySelector("#webpGifSelect").addEventListener("change", (event) => {
-  webpGif = event.target.value;
+document.querySelector("#webpFormatSelect").addEventListener("change", (event) => {
+  webpFormat = event.target.value;
 });
 document.querySelector("#columnSelect").addEventListener("change", (event) => {
   column = parseInt(event.target.value);
@@ -153,7 +154,7 @@ slider.addEventListener("change", (event) => {
   } else {
     let cut = event.target.value;
     sliderSelect.querySelector("#goto").value = parseInt(cut);
-    sliderImage.src = `${cloud}/${allList[movie].name}/${cut.padStart(5, "0")}.jpg`;
+    sliderImage.src = `${cloud}/${allList[movie].name}/${cut.padStart(padLength, "0")}.jpg`;
   }
 });
 sliderSelect.querySelector("button#prev").addEventListener("click", () => {
@@ -248,11 +249,8 @@ rub_webp.addEventListener("click", () => {
         cut,
         duration: lastCut - cut + 1,
         trimName,
-        webpGif,
+        webpFormat,
         requestTo: "browser",
-        cloud,
-        webpWidth,
-        gifWidth,
       },
       webpItem
     ).catch((err) => {
@@ -276,22 +274,20 @@ runButton.addEventListener("click", () => {
     if (format == "jpg") {
       cut = getRandomInt(1, title.cut + 1)
         .toString()
-        .padStart(5, "0");
+        .padStart(padLength, "0");
       image.src = `${cloud}/${title.name}/${cut}.jpg`;
     } else if (format == "webp") {
       cut = getRandomInt(1, title.cut + 1 - duration);
       getWebp(
         {
-          time: (Date.now() + i).toString(),
           title: title.name,
           cut,
           duration,
           trimName,
-          webpGif,
+          webpFormat,
           requestTo: "server",
-          cloud,
-          webpWidth,
-          gifWidth,
+          from: "ghibli",
+          PAD_LENGTH: padLength,
         },
         items[i]
       ).catch((err) => {
@@ -357,8 +353,7 @@ document.querySelectorAll("input[checked], select").forEach((input) => {
 });
 
 async function getWebp(params, item) {
-  const { time, title, cut, duration, trimName, webpGif, requestTo, cloud, webpWidth, gifWidth } =
-    params;
+  const { time, title, cut, duration, trimName, webpFormat, requestTo } = params;
   const img = item.querySelector(".itemImg");
   const caption = item.querySelector("figcaption");
   const bar = item.querySelector("progress");
@@ -369,9 +364,9 @@ async function getWebp(params, item) {
   bar.hidden = false;
 
   const lastCut = cut + duration - 1;
-  let outputName = `${trimName}_${cut.toString().padStart(5, "0")}-${lastCut
+  let outputName = `${trimName}_${cut.toString().padStart(padLength, "0")}-${lastCut
     .toString()
-    .padStart(5, "0")}.${webpGif}`;
+    .padStart(padLength, "0")}.${webpFormat}`;
   outputName = encodeURIComponent(outputName);
 
   URL.revokeObjectURL(img?.src); // 장면 선택 모드
@@ -394,7 +389,7 @@ async function getWebp(params, item) {
     let downloadCount = 1;
 
     for (let i = 0; i < duration; i++) {
-      const filename = `${(cut + i).toString().padStart(5, "0")}.jpg`;
+      const filename = `${(cut + i).toString().padStart(padLength, "0")}.jpg`;
 
       downloadPromises.push(
         new Promise((resolve) => {
@@ -408,7 +403,7 @@ async function getWebp(params, item) {
     }
 
     const command =
-      webpGif === "webp"
+      webpFormat === "webp"
         ? ["-vf", `scale=${webpWidth}:-1`, "-loop", "0", "-preset", "drawing", "-qscale", "90"]
         : [
             "-lavfi",
@@ -422,20 +417,20 @@ async function getWebp(params, item) {
       "-pattern_type", "glob",
       "-i", `webp/${time}/*.jpg`,
       ...command,
-      `webp/${time}/output.${webpGif}` //output에서 utf-8 지원 안됨(FS는 가능)
+      `webp/${time}/output.${webpFormat}` //output에서 utf-8 지원 안됨(FS는 가능)
     );
 
-    const output = ffmpeg.FS("readFile", `webp/${time}/output.${webpGif}`);
+    const output = ffmpeg.FS("readFile", `webp/${time}/output.${webpFormat}`);
     // console.log(output);
-    createWebp({ buffer: [output.buffer], img, caption, bar, webpGif, outputName });
+    createWebp({ buffer: [output.buffer], img, caption, bar, webpFormat, outputName });
     clear_ffmpeg(ffmpeg);
   } else if (requestTo == "server") {
     // const socket = io("ws://localhost:3000/");
-    const socket = io("wss://rosenrose-ghibli-webp.herokuapp.com/");
+    const socket = io("wss://webp-cloudrun-osuiaeahvq-an.a.run.app/");
     let buffer = [];
 
     socket.emit("webp", params, () => {
-      createWebp({ buffer, img, caption, bar, webpGif, outputName });
+      createWebp({ buffer, img, caption, bar, webpFormat, outputName });
     });
     socket.on("progress", (progress) => {
       // console.log("server", progress);
@@ -474,8 +469,8 @@ function showDownload(caption, bar, duration, count) {
 }
 
 function createWebp(props) {
-  const { buffer, img, bar, outputName } = props;
-  const blob = new Blob(buffer, { type: `image/${webpGif}` });
+  const { buffer, img, bar, outputName, webpFormat } = props;
+  const blob = new Blob(buffer, { type: `image/${webpFormat}` });
 
   img.src = URL.createObjectURL(blob);
 
